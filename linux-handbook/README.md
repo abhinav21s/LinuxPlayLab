@@ -79,31 +79,11 @@ linux-handbook/
 
 ```bash
 cd linux-handbook
-
-# Install dependencies
 npm install
-
-# Install Tailwind CSS
-npm install -D tailwindcss postcss autoprefixer
-npx tailwindcss init -p
-
-# Optional: Install additional Tailwind plugins if needed
-npm install -D @tailwindcss/forms
-```
-
-### Development
-
-```bash
 npm run dev
 ```
 
 Opens at `http://localhost:5173`
-
-The application will:
-1. Load the UI immediately
-2. Load CheerpX library from CDN
-3. Initialize WebVM on first terminal open
-4. Show loading indicator during initialization
 
 ### Build
 

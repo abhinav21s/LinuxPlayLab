@@ -51,11 +51,9 @@ A modern, fully-functional Linux command learning platform with an integrated sa
 ```bash
 cd linux-handbook
 npm install
-npm install -D tailwindcss postcss autoprefixer
-npx tailwindcss init -p
 ```
 
-**Note**: CheerpX is loaded from CDN, not installed locally.
+That's it! All dependencies including Tailwind CSS are in `package.json`.
 
 ### Step 2: Start Development Server
 ```bash

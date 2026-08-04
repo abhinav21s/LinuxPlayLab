@@ -13,22 +13,16 @@
 # 1. Navigate to project directory
 cd linux-handbook
 
-# 2. Install dependencies
+# 2. Install all dependencies (including Tailwind CSS)
 npm install
 
-# 3. Install Tailwind CSS development dependencies
-npm install -D tailwindcss postcss autoprefixer
-
-# 4. Initialize Tailwind (creates config files)
-npx tailwindcss init -p
-
-# 5. Start development server
+# 3. Start development server
 npm run dev
 
-# 6. Open browser to http://localhost:5173
+# 4. Open browser to http://localhost:5173
 ```
 
-**Note**: CheerpX (WebVM library) is loaded from CDN at runtime, not installed via npm.
+**Note**: Tailwind CSS is already configured in `package.json`, `tailwind.config.js`, and `postcss.config.js`. Just run `npm install` once.
 
 ## What You'll See
 
