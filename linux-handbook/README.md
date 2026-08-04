@@ -2,45 +2,76 @@
 
 A modern, clean, and highly usable web application for learning and practicing Linux commands with an integrated safe sandbox environment.
 
-## Project Status: Phase 1 Complete ✓
+## Project Status: Phase 2 Complete ✓
 
-### What's Implemented
+### What's Implemented in Phase 2
 
-- **Modern UI Shell**: Clean, responsive design with dark/light mode toggle
-- **Command Data Modeling**: Structured command organization in 7+ sections
-- **Sectioned Display**: Collapsible sections with grouped commands
-- **Fast Search**: Real-time fuzzy search across command names, descriptions, and examples
-- **Dark Mode**: Full dark/light theme support with localStorage persistence
-- **Favorites System**: Bookmark commands for quick access
-- **Copy Commands**: One-click copy to clipboard
-- **Responsive Design**: Works on desktop and tablet
+- **WebVM Integration**: CheerpX-based Linux VM running entirely in the browser
+- **Networking Disabled**: All network access blocked at the VM level (no ping, curl, ssh, etc.)
+- **Client-Side Only**: All execution happens in IndexedDB overlay, no server involvement
+- **xterm.js Terminal**: Professional terminal UI with themes, cursor, scrollback
+- **Terminal I/O**: Full bidirectional communication between UI and WebVM
+- **Pre-filled Commands**: "Try it" buttons send command example directly to terminal
+- **Reset Functionality**: Complete filesystem reset to clean state via "Reset" button
+- **Error Handling**: Graceful fallback if WebVM unavailable
+- **Security Indicators**: Clear visual indication of sandbox isolation
 
-### Project Structure
+### Project Structure (Updated)
 
 ```
 linux-handbook/
 ├── src/
-│   ├── components/          # React components
+│   ├── components/
 │   │   ├── SearchBar.tsx
 │   │   ├── CommandCard.tsx
 │   │   ├── CommandSection.tsx
-│   │   └── ThemeToggle.tsx
+│   │   ├── ThemeToggle.tsx
+│   │   └── Terminal.tsx              ← NEW
+│   ├── services/
+│   │   └── webvmService.ts           ← NEW (WebVM wrapper)
 │   ├── data/
-│   │   └── commands.ts      # Command database
+│   │   └── commands.ts
 │   ├── hooks/
-│   │   ├── useSearch.ts     # Search logic with Fuse.js
-│   │   └── useLocalStorage.ts # Persistence
+│   │   ├── useSearch.ts
+│   │   └── useLocalStorage.ts
 │   ├── types/
-│   │   └── index.ts         # TypeScript types
-│   ├── App.tsx
+│   │   └── index.ts
+│   ├── App.tsx                       ← UPDATED
 │   ├── main.tsx
-│   └── index.css            # Tailwind styles
-├── package.json
-├── vite.config.ts
-├── tailwind.config.js
-├── tsconfig.json
-└── index.html
+│   └── index.css                     ← UPDATED (xterm styles)
+├── package.json                      ← UPDATED
+├── SECURITY.md                       ← NEW
+└── README.md                         ← THIS FILE
 ```
+
+## Features
+
+### Phase 1 Features ✓
+✓ Dark/Light mode toggle with persistence
+✓ Fast fuzzy search with Fuse.js
+✓ Collapsible command sections
+✓ Copy to clipboard
+✓ Favorites system
+✓ Responsive design
+✓ localStorage persistence
+
+### Phase 2 Features ✓
+✓ WebVM sandbox (CheerpX)
+✓ Networking completely disabled
+✓ xterm.js terminal
+✓ Terminal resize and minimize
+✓ Pre-filled commands from UI
+✓ Reset to clean slate
+✓ Terminal history
+✓ Dark theme terminal
+✓ Error handling & fallbacks
+
+### Upcoming Features
+⚬ Command interception layer (Phase 3)
+⚬ Blocked command warnings (Phase 3)
+⚬ Rate limiting (Phase 4)
+⚬ Keyboard shortcuts (Phase 5)
+⚬ Command history tracking (Phase 5)
 
 ## Getting Started
 
@@ -48,9 +79,16 @@ linux-handbook/
 
 ```bash
 cd linux-handbook
+
+# Install dependencies
 npm install
+
+# Install Tailwind CSS
 npm install -D tailwindcss postcss autoprefixer
 npx tailwindcss init -p
+
+# Optional: Install additional Tailwind plugins if needed
+npm install -D @tailwindcss/forms
 ```
 
 ### Development
@@ -61,6 +99,12 @@ npm run dev
 
 Opens at `http://localhost:5173`
 
+The application will:
+1. Load the UI immediately
+2. Load CheerpX library from CDN
+3. Initialize WebVM on first terminal open
+4. Show loading indicator during initialization
+
 ### Build
 
 ```bash
@@ -68,34 +112,183 @@ npm run build
 npm run preview
 ```
 
-## Next Phases
+## Architecture
 
-- **Phase 2**: WebVM integration with networking disabled + basic terminal
-- **Phase 3**: Command interception layer + blocked command handling
-- **Phase 4**: Reset to clean slate + security hardening
-- **Phase 5**: Polish UX (Try buttons, dark mode, keyboard shortcuts)
-- **Phase 6**: Final testing, accessibility, performance, documentation
+### WebVM Service Layer (`webvmService.ts`)
+
+Provides a clean API for:
+- **Initialize**: Start WebVM with networking disabled
+- **AttachTerminal**: Connect xterm.js to VM
+- **ExecuteCommand**: Run commands programmatically
+- **Reset**: Clear filesystem and reinitialize
+- **Status**: Check VM state and configuration
+
+### Terminal Component (`Terminal.tsx`)
+
+Handles:
+- Terminal rendering and resizing
+- Loading states
+- Error states with fallbacks
+- Reset UI
+- Minimize/maximize
+- Footer status information
+
+### Integration in App
+
+- "Terminal" button in header to toggle visibility
+- Terminal opens as fixed panel on bottom-right
+- "Try it" buttons on commands pre-fill terminal
+- Reset button clears filesystem
+
+## Security Model
+
+### What's Blocked (By Design)
+
+❌ **All networking**: ping, curl, wget, ssh, scp, etc.
+❌ **Persistent services**: systemctl, service, cron
+❌ **Containers**: All docker commands
+❌ **Privileged ops**: Anything requiring root
+
+### What Works
+
+✅ File operations: ls, mkdir, rm, cp, mv, touch
+✅ Text processing: grep, sed, awk, sort
+✅ System info: uname, uptime, free, df
+✅ Shell scripting: bash, functions, loops
+✅ Compression: tar, zip, gzip
+
+See [SECURITY.md](./SECURITY.md) for detailed threat model and testing.
+
+## Deployment
+
+### Production Build
+
+```bash
+npm run build
+```
+
+Output goes to `dist/` folder. Deploy to any static host:
+- Vercel
+- Netlify
+- GitHub Pages
+- AWS S3 + CloudFront
+- Any web server
+
+### Important Notes for Deployment
+
+1. **COOP/COEP Headers**: Some browsers need these for SharedArrayBuffer
+   ```
+   Cross-Origin-Opener-Policy: same-origin
+   Cross-Origin-Embedder-Policy: require-corp
+   ```
+
+2. **CSP Headers**: Consider allowing CheerpX CDN
+   ```
+   script-src 'self' https://cheerpxdev.ltmx.net
+   ```
+
+3. **Size**: Production build is ~500KB gzipped (includes all dependencies)
 
 ## Technologies Used
 
 - **React 18** - UI framework
 - **TypeScript** - Type safety
-- **Vite** - Build tool
-- **Tailwind CSS** - Styling
-- **Lucide React** - Icons
+- **Vite** - Build tool & dev server
+- **Tailwind CSS** - Styling with dark mode
+- **Lucide React** - Icon library
 - **Fuse.js** - Fuzzy search
-- **xterm.js** - Terminal (Phase 2)
-- **WebVM** - Browser-based Linux VM (Phase 2)
+- **xterm.js** - Terminal emulation
+- **CheerpX** - Linux VM in WebAssembly (CDN)
 
-## Features
+## Browser Support
 
-✓ Dark/Light mode toggle
-✓ Fast fuzzy search
-✓ Collapsible command sections
-✓ Copy to clipboard
-✓ Favorites system
-✓ Responsive design
-✓ localStorage persistence
-⚬ WebVM sandbox (coming Phase 2)
-⚬ Command interception (coming Phase 3)
-⚬ Reset functionality (coming Phase 4)
+| Browser | Version | Support |
+|---------|---------|---------|
+| Chrome  | 88+     | ✅ Full |
+| Firefox | 78+     | ✅ Full |
+| Safari  | 15+     | ✅ Full |
+| Edge    | 88+     | ✅ Full |
+
+## Development Notes
+
+### Adding New Commands
+
+Edit `src/data/commands.ts`:
+```typescript
+{
+  id: "cmd_1_11",
+  name: "ls",
+  description: "list directory contents",
+  example: "ls -la /home",
+  section: 1,
+}
+```
+
+### Customizing Terminal Theme
+
+Edit `webvmService.ts` `Terminal` constructor:
+```typescript
+theme: {
+  background: '#0f172a',
+  foreground: '#e2e8f0',
+  // ... customize colors
+}
+```
+
+### Debugging WebVM
+
+Check browser console for:
+- CheerpX library load status
+- VM initialization logs
+- Command execution output
+- Network errors (will show as "no network" instead)
+
+## Next Phases
+
+### Phase 3: Command Interception Layer
+- Intercept dangerous commands before reaching VM
+- Show friendly "blocked" messages
+- Log blocked command attempts
+- User-friendly explanations
+
+### Phase 4: Security Hardening
+- Rate limiting
+- Command timeout enforcement
+- Memory limit enforcement
+- Disk quota tracking
+- Better error messages
+
+### Phase 5: Polish & UX
+- Keyboard shortcuts
+- Command history persistence
+- Favorite commands in terminal
+- Terminal color themes
+- Mobile terminal optimization
+
+### Phase 6: Testing & Documentation
+- End-to-end security tests
+- Performance benchmarks
+- Accessibility audit (WCAG 2.1)
+- Comprehensive user documentation
+- Video tutorials
+
+## Contributing
+
+This is an educational project. Contributions welcome for:
+- Additional commands to handbook
+- UI improvements
+- Security hardening
+- Documentation
+- Bug fixes
+
+## License
+
+MIT
+
+## Support
+
+For issues, suggestions, or security concerns:
+1. Check existing documentation
+2. Search GitHub issues
+3. Review SECURITY.md for security questions
+4. Submit issue with reproduction steps

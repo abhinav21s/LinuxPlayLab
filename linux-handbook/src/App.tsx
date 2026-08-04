@@ -2,17 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { ThemeToggle } from './components/ThemeToggle';
 import { SearchBar } from './components/SearchBar';
 import { CommandSection } from './components/CommandSection';
+import { Terminal } from './components/Terminal';
 import { commandSections } from './data/commands';
 import { useSearch } from './hooks/useSearch';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { Command } from './types';
-import { Book } from 'lucide-react';
+import { Book, Terminal as TerminalIcon } from 'lucide-react';
 
 function App() {
   const [darkMode, setDarkMode] = useLocalStorage<boolean>('linuxhandbook-darkmode', false);
   const [searchQuery, setSearchQuery] = useState('');
   const [favorites, setFavorites] = useLocalStorage<string[]>('linuxhandbook-favorites', []);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isTerminalOpen, setIsTerminalOpen] = useState(false);
+  const [prefilledCommand, setPrefilledCommand] = useState<string>('');
 
   const favoriteSet = new Set(favorites);
   const filteredSections = useSearch({ sections: commandSections, query: searchQuery });
@@ -40,8 +43,12 @@ function App() {
   };
 
   const handleTryCommand = (command: Command) => {
-    // Placeholder for Phase 2 (WebVM integration)
-    console.log('Try command:', command);
+    setPrefilledCommand(command.example);
+    setIsTerminalOpen(true);
+  };
+
+  const handleTerminalReset = () => {
+    setPrefilledCommand('');
   };
 
   return (
@@ -62,7 +69,21 @@ function App() {
                   </p>
                 </div>
               </div>
-              <ThemeToggle isDark={darkMode} onToggle={() => setDarkMode(!darkMode)} />
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setIsTerminalOpen(!isTerminalOpen)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                    isTerminalOpen
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600'
+                  }`}
+                  title="Toggle terminal"
+                >
+                  <TerminalIcon size={18} />
+                  <span className="text-sm hidden sm:inline">Terminal</span>
+                </button>
+                <ThemeToggle isDark={darkMode} onToggle={() => setDarkMode(!darkMode)} />
+              </div>
             </div>
 
             <SearchBar
@@ -74,7 +95,7 @@ function App() {
         </header>
 
         {/* Main Content */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-96 sm:pb-0">
           {filteredSections.length === 0 && searchQuery ? (
             <div className="text-center py-12">
               <p className="text-lg text-gray-600 dark:text-gray-400">
@@ -97,10 +118,18 @@ function App() {
           )}
         </main>
 
+        {/* Terminal Component */}
+        <Terminal
+          isOpen={isTerminalOpen}
+          onClose={() => setIsTerminalOpen(false)}
+          prefilledCommand={prefilledCommand}
+          onReset={handleTerminalReset}
+        />
+
         {/* Footer */}
         <footer className="border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 text-center py-6 mt-12">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Phase 1: UI Shell & Search Complete • WebVM Sandbox Coming in Phase 2
+            Phase 2: WebVM Integration Complete • Terminal Ready | Click "Try it" to execute commands
           </p>
         </footer>
       </div>

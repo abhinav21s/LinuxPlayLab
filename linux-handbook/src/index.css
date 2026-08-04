@@ -53,3 +53,43 @@ code, pre {
 .dark ::-webkit-scrollbar-thumb:hover {
   background: #888;
 }
+
+/* xterm.js styles */
+.xterm {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+  font-size: 14px;
+  color: #e2e8f0;
+  background-color: #0f172a;
+  padding: 12px;
+}
+
+.xterm-viewport {
+  background-color: #0f172a;
+}
+
+.xterm-screen {
+  color: #e2e8f0;
+}
+
+.xterm-cursor-layer {
+  display: none;
+}
+
+.xterm .xterm-cursor {
+  background-color: #0ea5e9;
+  color: #0f172a;
+  opacity: 1;
+}
+
+.xterm .xterm-cursor.xterm-cursor-blink {
+  animation: blink-xterm 1s linear infinite;
+}
+
+@keyframes blink-xterm {
+  0%, 49% {
+    opacity: 1;
+  }
+  50%, 100% {
+    opacity: 0;
+  }
+}
