@@ -3,6 +3,7 @@ import { ThemeToggle } from './components/ThemeToggle';
 import { SearchBar } from './components/SearchBar';
 import { CommandSection } from './components/CommandSection';
 import { Terminal } from './components/Terminal';
+import { BlockedCommandsInfo } from './components/BlockedCommandsInfo';
 import { commandSections } from './data/commands';
 import { useSearch } from './hooks/useSearch';
 import { useLocalStorage } from './hooks/useLocalStorage';
@@ -103,18 +104,22 @@ function App() {
               </p>
             </div>
           ) : (
-            filteredSections.map(section => (
-              <CommandSection
-                key={section.id}
-                id={section.id}
-                title={section.title}
-                commands={section.commands}
-                onTryCommand={handleTryCommand}
-                onCopyCommand={handleCopyCommand}
-                onFavorite={handleToggleFavorite}
-                favorites={favoriteSet}
-              />
-            ))
+            <>
+              {filteredSections.map(section => (
+                <CommandSection
+                  key={section.id}
+                  id={section.id}
+                  title={section.title}
+                  commands={section.commands}
+                  onTryCommand={handleTryCommand}
+                  onCopyCommand={handleCopyCommand}
+                  onFavorite={handleToggleFavorite}
+                  favorites={favoriteSet}
+                />
+              ))}
+
+              {!searchQuery && <BlockedCommandsInfo />}
+            </>
           )}
         </main>
 
@@ -129,7 +134,7 @@ function App() {
         {/* Footer */}
         <footer className="border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 text-center py-6 mt-12">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Phase 2: WebVM Integration Complete • Terminal Ready | Click "Try it" to execute commands
+            Phase 3: Command Interception Complete • Dangerous commands blocked before execution
           </p>
         </footer>
       </div>

@@ -1,0 +1,12 @@
+.vscode/
+.idea/
+node_modules/
+dist/
+.DS_Store
+*.log
+.env*
+PHASE2_INSTALLATION.md
+PHASE2_SUMMARY.md
+SECURITY.md
+START_HERE.md
+PHASE_COMPLETION_REPORT.md
