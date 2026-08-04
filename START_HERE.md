@@ -55,6 +55,8 @@ npm install -D tailwindcss postcss autoprefixer
 npx tailwindcss init -p
 ```
 
+**Note**: CheerpX is loaded from CDN, not installed locally.
+
 ### Step 2: Start Development Server
 ```bash
 npm run dev

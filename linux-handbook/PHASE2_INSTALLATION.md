@@ -28,7 +28,7 @@ npm run dev
 # 6. Open browser to http://localhost:5173
 ```
 
-The application should automatically open in your default browser.
+**Note**: CheerpX (WebVM library) is loaded from CDN at runtime, not installed via npm.
 
 ## What You'll See
 

@@ -4,14 +4,19 @@
  * - Networking disabled (no Tailscale, no outbound connections)
  * - Client-side only execution (IndexedDB overlay)
  * - Terminal connection
+ * 
+ * CheerpX is loaded from CDN, not npm
  */
 
 import { Terminal } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
 
+// CheerpX is loaded from CDN as a global
 declare global {
   interface Window {
-    CheerpX?: any;
+    CheerpX?: {
+      VM: (config: any) => any;
+    };
   }
 }
 

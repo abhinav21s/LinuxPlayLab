@@ -198,7 +198,7 @@ Output goes to `dist/` folder. Deploy to any static host:
 - **Lucide React** - Icon library
 - **Fuse.js** - Fuzzy search
 - **xterm.js** - Terminal emulation
-- **CheerpX** - Linux VM in WebAssembly (CDN)
+- **CheerpX** - Linux VM in WebAssembly (loaded from CDN, not npm)
 
 ## Browser Support
 
