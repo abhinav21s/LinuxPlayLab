@@ -1,0 +1,595 @@
+================================================================================
+                    THE COMPLETE LINUX COMMAND HANDBOOK
+================================================================================
+Verified against real --help/man output where the sandbox allowed it.
+Format: command -- what it does -- common usage example
+
+
+================================================================================
+1. FILE & DIRECTORY MANAGEMENT
+================================================================================
+ls              -- list directory contents
+ls -l           -- long listing format (permissions, owner, size, date)
+ls -la          -- long listing including hidden files
+ls -lh          -- long listing with human-readable sizes
+ls -R           -- list recursively
+pwd             -- print working (current) directory
+cd              -- change directory                         | cd /var/log
+cd ..           -- move up one directory
+cd ~            -- go to home directory
+cd -            -- go to previous directory
+mkdir           -- create a directory                        | mkdir project
+mkdir -p        -- create nested directories at once          | mkdir -p a/b/c
+rmdir           -- remove an empty directory
+rm              -- remove files                               | rm file.txt
+rm -r           -- remove directories recursively
+rm -rf          -- force remove recursively (no confirmation, use carefully)
+cp              -- copy files                                 | cp a.txt b.txt
+cp -r           -- copy directories recursively
+cp -v           -- copy with verbose output
+mv              -- move or rename files/directories            | mv old.txt new.txt
+touch           -- create an empty file or update timestamp    | touch file.txt
+file            -- determine file type                         | file archive.zip
+stat            -- display detailed file/inode status
+tree            -- show directory structure as a tree (may need install)
+find            -- search for files/directories                | find . -name "*.log"
+find -type f    -- find only regular files
+find -type d    -- find only directories
+find -mtime -7  -- find files modified in last 7 days
+locate          -- quickly find files using a prebuilt database
+basename        -- strip directory and suffix from a path
+dirname         -- output the directory portion of a path
+readlink        -- print resolved symbolic link target
+ln              -- create hard link                            | ln file1 file2
+ln -s           -- create symbolic (soft) link                 | ln -s target linkname
+rename          -- rename multiple files using patterns
+shred           -- securely overwrite and delete a file
+realpath        -- print the absolute path of a file
+
+
+================================================================================
+2. FILE VIEWING & EDITING
+================================================================================
+cat             -- print file contents to screen               | cat file.txt
+cat -n          -- print with line numbers
+tac             -- print file contents in reverse (last line first)
+less            -- view file contents page by page (scrollable)
+more            -- view file contents page by page (basic, older)
+head            -- print first 10 lines of a file              | head -n 20 file.txt
+tail            -- print last 10 lines of a file                | tail -n 20 file.txt
+tail -f         -- follow a file live as it grows (e.g. logs)   | tail -f app.log
+nano            -- simple terminal text editor
+vim / vi        -- advanced modal terminal text editor
+emacs           -- extensible terminal/GUI text editor
+diff            -- compare two files line by line              | diff a.txt b.txt
+diff -u         -- unified diff format (used in patches)
+cmp             -- compare two files byte by byte
+patch           -- apply a diff/patch file to source files
+wc              -- word, line, character, byte count            | wc -l file.txt
+wc -l           -- count lines only
+wc -w           -- count words only
+sort            -- sort lines of text                          | sort file.txt
+sort -r         -- sort in reverse order
+sort -n         -- sort numerically
+uniq            -- report or omit repeated adjacent lines       | sort file | uniq
+uniq -c         -- prefix lines with count of occurrences
+cut             -- extract columns/fields from text             | cut -d',' -f1 file.csv
+tr              -- translate or delete characters               | tr 'a-z' 'A-Z'
+xxd             -- create a hex dump of a file
+od              -- octal/hex dump of a file
+
+
+================================================================================
+3. SEARCH & TEXT PROCESSING
+================================================================================
+grep            -- search text using patterns                   | grep "error" log.txt
+grep -i         -- case-insensitive search
+grep -r         -- recursive search through directories
+grep -v         -- invert match (show non-matching lines)
+grep -n         -- show line numbers with matches
+grep -c         -- count matching lines
+grep -E         -- extended regular expressions (egrep)
+egrep           -- grep with extended regex (same as grep -E)
+fgrep           -- grep for fixed strings (same as grep -F)
+sed             -- stream editor for filtering/transforming text | sed 's/old/new/g' file.txt
+sed -i          -- edit file in place
+sed -n          -- suppress automatic printing (used with 'p')
+awk             -- pattern scanning and text processing language | awk '{print $1}' file.txt
+awk -F          -- set a custom field separator                 | awk -F',' '{print $2}'
+xargs           -- build and execute commands from input        | find . -name "*.tmp" | xargs rm
+tee             -- write output to screen and a file at once     | ls | tee out.txt
+column          -- format text into aligned columns
+fold            -- wrap long lines to a given width
+paste           -- merge lines of files side by side
+join            -- join lines of two files on a common field
+comm            -- compare two sorted files line by line
+
+
+================================================================================
+4. USERS & GROUPS
+================================================================================
+whoami          -- print current logged-in username
+who             -- show who is logged in
+w               -- show who is logged in and what they're doing
+id              -- print user and group IDs                     | id username
+last            -- show last logged-in users
+useradd         -- create a new user account                    | sudo useradd -m john
+useradd -m      -- create user with a home directory
+usermod         -- modify an existing user account
+usermod -aG     -- add user to a supplementary group             | sudo usermod -aG sudo john
+userdel         -- delete a user account
+userdel -r      -- delete user and their home directory
+passwd          -- change a user's password                     | passwd username
+passwd -l       -- lock a user account
+groupadd        -- create a new group                            | sudo groupadd developers
+groupdel        -- delete a group
+groupmod        -- modify a group
+groups          -- show groups a user belongs to
+gpasswd         -- administer group membership/password
+su              -- switch user                                  | su - username
+sudo            -- execute a command as another user (root)     | sudo apt update
+sudo -i         -- start an interactive root shell
+sudo -u         -- run command as a specific user
+visudo          -- safely edit the /etc/sudoers file
+chsh            -- change a user's login shell
+chfn            -- change user's finger information (full name etc.)
+
+
+================================================================================
+5. PERMISSIONS & OWNERSHIP
+================================================================================
+chmod           -- change file permissions                      | chmod 755 script.sh
+chmod +x        -- make a file executable
+chmod -R        -- change permissions recursively
+chmod u+w       -- add write permission for the owner
+chown           -- change file owner and/or group                | chown user:group file
+chown -R        -- change ownership recursively
+chgrp           -- change group ownership of a file
+umask           -- set default permission mask for new files
+getfacl         -- display file access control list (ACL)
+setfacl         -- set file access control list (ACL)
+stat -c "%a"    -- print permissions in numeric (octal) form
+
+
+================================================================================
+6. PROCESSES & JOBS
+================================================================================
+ps              -- report a snapshot of current processes       | ps aux
+ps aux          -- show all running processes (BSD style)
+ps -ef          -- show all processes (standard/UNIX style)
+top             -- interactive real-time process viewer
+htop            -- improved interactive process viewer (may need install)
+kill            -- send a signal to a process by PID            | kill 1234
+kill -9         -- forcefully kill a process (SIGKILL)
+kill -15        -- gracefully terminate a process (SIGTERM, default)
+killall         -- kill processes by name                        | killall firefox
+pkill           -- kill processes matching a pattern             | pkill -f node
+pgrep           -- find process IDs matching a pattern           | pgrep nginx
+nice            -- start a process with a given priority
+renice          -- change priority of a running process
+nohup           -- run a command immune to hangups (survives logout) | nohup script.sh &
+jobs            -- list background jobs in current shell
+bg              -- resume a job in the background
+fg              -- bring a background job to the foreground
+disown          -- remove a job from the shell's job table
+&               -- run a command in the background               | script.sh &
+Ctrl+Z          -- suspend current foreground process
+wait            -- wait for background jobs to finish
+lsof            -- list open files and the processes using them  | lsof -i :8080
+strace          -- trace system calls made by a process
+uptime          -- show how long the system has been running and load average
+
+
+================================================================================
+7. SYSTEM INFORMATION
+================================================================================
+uname           -- print system information                      | uname -a
+uname -a        -- print all system info (kernel, hostname, arch)
+uname -r        -- print kernel release version
+hostname        -- show or set the system hostname
+hostnamectl     -- query/change system hostname and related settings
+uptime          -- show system uptime and load averages
+date            -- display or set system date and time
+cal             -- display a calendar
+free            -- display memory (RAM) usage                    | free -h
+free -h         -- memory usage in human-readable form
+lscpu           -- display CPU architecture information
+lsblk           -- list block devices (disks/partitions)
+lspci           -- list PCI devices
+lsusb           -- list USB devices
+dmesg           -- print kernel ring buffer messages (boot/hw logs)
+uptime -p       -- pretty-print uptime
+arch            -- print machine hardware architecture name
+env             -- display environment variables
+printenv        -- print specific or all environment variables
+neofetch        -- display system info with ASCII art (may need install)
+
+
+================================================================================
+8. DISK & STORAGE
+================================================================================
+df              -- report disk space usage of filesystems        | df -h
+df -h           -- disk usage in human-readable form
+du              -- estimate file/directory space usage           | du -sh folder/
+du -sh          -- summarized, human-readable size of a directory
+mount           -- mount a filesystem                            | mount /dev/sdb1 /mnt
+umount          -- unmount a filesystem
+fdisk           -- partition table manipulator                   | sudo fdisk -l
+fdisk -l        -- list all disk partitions
+parted          -- a more advanced partitioning tool
+mkfs            -- create a filesystem on a partition             | mkfs.ext4 /dev/sdb1
+fsck            -- check and repair a filesystem
+blkid           -- display block device attributes (UUID, type)
+lsblk           -- list block devices in a tree view
+badblocks       -- search a device for bad sectors
+smartctl        -- monitor disk health via S.M.A.R.T. (may need install)
+sync            -- flush filesystem buffers to disk
+
+
+================================================================================
+9. NETWORKING
+================================================================================
+ip a            -- show network interfaces and IP addresses (modern)
+ip addr show    -- same as above, full form
+ip link         -- show/manage network interfaces
+ip route        -- show/manage routing table
+ifconfig        -- show/configure network interfaces (legacy)
+ping            -- test connectivity to a host                   | ping google.com
+ping -c 4       -- send a fixed number of ping packets
+traceroute      -- trace the route packets take to a host
+mtr             -- combines ping and traceroute in real time
+netstat         -- show network connections/ports (legacy)
+ss              -- show socket statistics (modern replacement for netstat) | ss -tulnp
+ss -tulnp       -- show listening TCP/UDP ports with process info
+curl            -- transfer data from/to a URL                   | curl -O https://example.com/file
+curl -O         -- download and save file with its remote name
+curl -I         -- fetch only HTTP headers
+wget            -- download files from the web                  | wget https://example.com/file
+nslookup        -- query DNS name servers
+dig             -- detailed DNS lookup tool                       | dig example.com
+host            -- simple DNS lookup utility
+whois           -- look up domain registration information
+nmap            -- network exploration and port scanning (may need install)
+scp             -- securely copy files over SSH                  | scp file.txt user@host:/path
+rsync           -- efficient file sync/copy (local or remote)     | rsync -avz src/ dest/
+rsync -avz      -- archive, verbose, compressed sync
+route           -- show/manipulate IP routing table (legacy)
+arp             -- show/manipulate the ARP cache
+iwconfig        -- configure wireless network interfaces (legacy)
+nmcli           -- control NetworkManager from the command line
+
+
+================================================================================
+10. PACKAGE MANAGEMENT
+================================================================================
+-- Debian/Ubuntu (APT) --
+apt update              -- refresh the local package index
+apt upgrade             -- upgrade all installed packages
+apt install             -- install a package                     | sudo apt install curl
+apt remove              -- remove a package (keep config files)
+apt purge               -- remove a package and its config files
+apt autoremove          -- remove unused dependency packages
+apt search              -- search for a package by name
+apt show                -- show details about a package
+apt list --installed    -- list all installed packages
+dpkg -i                 -- install a local .deb package file
+dpkg -l                 -- list installed packages (dpkg level)
+
+-- RedHat/Fedora/CentOS (DNF/YUM) --
+dnf install             -- install a package
+dnf remove              -- remove a package
+dnf update               -- update packages
+dnf search               -- search for a package
+yum install              -- install a package (older RHEL/CentOS)
+rpm -ivh                 -- install a local .rpm package file
+rpm -qa                  -- list all installed rpm packages
+
+-- Arch Linux (Pacman) --
+pacman -S                -- install a package
+pacman -R                -- remove a package
+pacman -Syu              -- sync and update all packages
+pacman -Ss               -- search for a package
+
+-- Universal / language package managers --
+snap install             -- install a snap package
+flatpak install          -- install a flatpak package
+pip install              -- install a Python package
+npm install              -- install a Node.js package
+gem install              -- install a Ruby gem
+
+
+================================================================================
+11. COMPRESSION & ARCHIVES
+================================================================================
+tar             -- archive multiple files into one (tape archive) | tar -cf archive.tar files/
+tar -cf         -- create a new archive
+tar -xf         -- extract files from an archive
+tar -tf         -- list contents of an archive without extracting
+tar -czf        -- create a gzip-compressed archive               | tar -czf archive.tar.gz folder/
+tar -xzf        -- extract a gzip-compressed archive
+tar -cjf        -- create a bzip2-compressed archive (.tar.bz2)
+tar -xjf        -- extract a bzip2-compressed archive
+gzip            -- compress a file (produces .gz)                 | gzip file.txt
+gunzip          -- decompress a .gz file
+zip             -- create a .zip archive                          | zip -r archive.zip folder/
+zip -r          -- recursively zip a directory
+unzip           -- extract a .zip archive                         | unzip archive.zip
+unzip -l        -- list contents of a zip without extracting
+7z              -- 7-Zip archiver (high compression, may need install)
+bzip2           -- compress a file using bzip2
+bunzip2         -- decompress a .bz2 file
+xz              -- compress a file using the xz format (high ratio)
+unxz            -- decompress an .xz file
+
+
+================================================================================
+12. SERVICES & SYSTEMD
+================================================================================
+systemctl start     -- start a service                            | sudo systemctl start nginx
+systemctl stop      -- stop a service
+systemctl restart   -- restart a service
+systemctl reload    -- reload a service's configuration without restart
+systemctl status    -- show status of a service                   | systemctl status nginx
+systemctl enable    -- enable a service to start on boot
+systemctl disable   -- disable a service from starting on boot
+systemctl is-active -- check whether a service is currently active
+systemctl is-enabled -- check whether a service is enabled at boot
+systemctl list-units -- list currently loaded units
+systemctl list-unit-files -- list all available unit files
+systemctl daemon-reload -- reload systemd manager configuration
+journalctl          -- query and view systemd logs                | journalctl -u nginx
+journalctl -u       -- show logs for a specific unit/service
+journalctl -f       -- follow logs live (like tail -f)
+journalctl -b       -- show logs since last boot
+journalctl -xe      -- show recent logs with extra explanation (for errors)
+service             -- start/stop services (legacy SysV interface) | service nginx restart
+
+
+================================================================================
+13. SHELL & BASH
+================================================================================
+echo            -- print text/variables to the screen             | echo "Hello"
+printf          -- formatted output (like C printf)
+export          -- set an environment variable for child processes | export PATH=$PATH:/new/dir
+alias           -- create a shortcut for a command                | alias ll='ls -la'
+unalias         -- remove a defined alias
+history         -- show command history
+!!              -- repeat the last command
+!n              -- repeat command number n from history
+which           -- show the full path of a command                | which python3
+whereis         -- locate binary, source, and man page of a command
+type            -- show how a command name would be interpreted
+source / .      -- execute a script in the current shell          | source ~/.bashrc
+exec            -- replace the current shell with a command
+exit             -- exit the current shell/session
+clear            -- clear the terminal screen
+reset            -- reset the terminal to default state
+set              -- set/display shell options and variables
+unset            -- remove a shell/environment variable
+env              -- run a command in a modified environment, or list env vars
+read             -- read a line of input into a variable
+
+
+================================================================================
+14. PIPES & REDIRECTION
+================================================================================
+|               -- pipe: send output of one command as input to another | ls | grep txt
+>               -- redirect output to a file (overwrite)          | echo hi > file.txt
+>>              -- redirect output to a file (append)             | echo hi >> file.txt
+<               -- redirect input from a file                      | sort < file.txt
+2>              -- redirect standard error to a file
+2>&1            -- redirect standard error to same place as standard output
+&>              -- redirect both stdout and stderr to a file
+/dev/null       -- discard output entirely                        | command > /dev/null 2>&1
+tee             -- split output to both screen and a file          | ls | tee out.txt
+&&              -- run next command only if previous succeeded
+||              -- run next command only if previous failed
+;               -- run commands sequentially regardless of success
+
+
+================================================================================
+15. SSH & REMOTE ACCESS
+================================================================================
+ssh             -- securely log into a remote machine             | ssh user@host
+ssh -p          -- connect using a non-default port
+ssh -i          -- connect using a specific private key file
+ssh-keygen      -- generate a new SSH key pair                    | ssh-keygen -t ed25519
+ssh-copy-id     -- copy your public key to a remote server's authorized_keys
+ssh-agent       -- background program that holds private keys for SSH
+ssh-add         -- add private keys to the running ssh-agent
+scp             -- securely copy files over SSH                   | scp file.txt user@host:/path
+sftp            -- interactive secure file transfer over SSH
+rsync -e ssh    -- sync files over SSH transport
+tmux            -- terminal multiplexer, persistent remote sessions
+screen          -- terminal multiplexer (older alternative to tmux)
+
+
+================================================================================
+16. CRON & SCHEDULING
+================================================================================
+crontab -e      -- edit the current user's cron jobs
+crontab -l      -- list the current user's cron jobs
+crontab -r      -- remove all of the current user's cron jobs
+crontab -u      -- edit another user's crontab (as root)          | crontab -u john -e
+at              -- schedule a one-time command to run later       | at 5pm
+atq             -- list pending 'at' jobs
+atrm            -- remove a pending 'at' job
+systemd timers  -- modern alternative to cron (via .timer unit files)
+-- Cron time format: minute hour day-of-month month day-of-week --
+-- Example: 0 3 * * * /path/script.sh   -> runs daily at 3:00 AM --
+
+
+================================================================================
+17. DOCKER (optional)
+================================================================================
+docker ps               -- list running containers
+docker ps -a             -- list all containers (including stopped)
+docker images            -- list local images
+docker run               -- create and start a container            | docker run -it ubuntu bash
+docker run -d            -- run a container in detached (background) mode
+docker run -p            -- map a container port to a host port     | -p 8080:80
+docker start             -- start a stopped container
+docker stop              -- stop a running container
+docker restart           -- restart a container
+docker rm                -- remove a container
+docker rmi               -- remove an image
+docker build             -- build an image from a Dockerfile         | docker build -t app .
+docker exec              -- run a command inside a running container | docker exec -it name bash
+docker logs              -- show logs from a container
+docker pull              -- download an image from a registry
+docker push              -- upload an image to a registry
+docker inspect           -- show detailed info about a container/image
+docker network ls        -- list docker networks
+docker volume ls         -- list docker volumes
+docker-compose up        -- start services defined in docker-compose.yml
+docker-compose down      -- stop and remove services from docker-compose.yml
+docker system prune      -- remove unused containers, images, and networks
+
+
+================================================================================
+18. GIT (optional)
+================================================================================
+git init                -- initialize a new git repository
+git clone               -- clone a remote repository                | git clone <url>
+git status              -- show working directory/staging status
+git add                 -- stage changes for commit                 | git add file.txt
+git add .               -- stage all changes in current directory
+git commit -m           -- commit staged changes with a message     | git commit -m "message"
+git push                -- upload local commits to a remote
+git pull                -- fetch and merge changes from a remote
+git fetch               -- download objects/refs from a remote without merging
+git branch              -- list, create, or delete branches
+git checkout             -- switch branches or restore files        | git checkout branch-name
+git checkout -b          -- create and switch to a new branch
+git switch               -- switch branches (modern alternative to checkout)
+git merge                -- merge another branch into current branch
+git log                  -- show commit history
+git log --oneline        -- condensed one-line-per-commit history
+git diff                 -- show changes between commits/working tree
+git stash                -- temporarily shelve uncommitted changes
+git stash pop            -- reapply the most recently stashed changes
+git reset                -- unstage changes or move HEAD
+git reset --hard         -- discard all local changes (destructive)
+git revert               -- create a new commit that undoes a previous one
+git rebase               -- reapply commits on top of another base
+git remote -v            -- show configured remote repositories
+git tag                  -- create, list, or delete tags
+git blame                -- show who last modified each line of a file
+git config               -- get/set git configuration options
+
+
+================================================================================
+19. BASH SCRIPTING
+================================================================================
+#!/bin/bash     -- shebang line, tells the OS which interpreter to use
+$1, $2, ...     -- positional arguments passed to the script
+$0              -- the script's own name
+$#              -- number of arguments passed
+$@              -- all arguments as a list
+$?              -- exit status of the last executed command
+$$              -- process ID of the current shell
+if / then / fi  -- conditional statement
+for / do / done -- loop over a list of items
+while / do / done -- loop while a condition is true
+case / esac     -- multi-way branch statement
+function        -- define a reusable block of code
+return          -- return a value/status from a function
+test / [ ]      -- evaluate a conditional expression
+[[ ]]           -- extended conditional expression (bash-specific)
+local           -- declare a variable local to a function
+declare         -- declare a variable with attributes (e.g. -i for integer)
+chmod +x script.sh -- make a script executable before running it
+./script.sh     -- run a script from the current directory
+bash script.sh  -- run a script explicitly with bash
+
+
+================================================================================
+20. ENVIRONMENT VARIABLES
+================================================================================
+env             -- list all current environment variables
+printenv        -- print all or a specific environment variable    | printenv PATH
+export VAR=val  -- set and export an environment variable
+echo $VAR       -- print the value of a variable
+unset VAR       -- remove an environment variable
+$PATH           -- list of directories searched for executables
+$HOME           -- current user's home directory path
+$USER           -- current logged-in username
+$PWD            -- current working directory
+$SHELL          -- path to the current user's default shell
+.bashrc / .bash_profile / .profile -- shell startup config files
+
+
+================================================================================
+21. LOG MANAGEMENT
+================================================================================
+/var/log/       -- default directory holding most system log files
+journalctl      -- view systemd-managed logs (see Services & Systemd section)
+tail -f         -- follow a log file live                          | tail -f /var/log/syslog
+less            -- page through large log files
+dmesg           -- view kernel ring buffer / boot messages
+logrotate       -- manage automatic rotation/compression of log files
+logger          -- add a custom entry to the system log            | logger "custom message"
+last            -- show login history from /var/log/wtmp
+lastb           -- show failed login attempts (from /var/log/btmp)
+
+
+================================================================================
+22. TERMINAL MULTIPLEXERS
+================================================================================
+tmux            -- start a new tmux session
+tmux new -s     -- start a new named session                       | tmux new -s work
+tmux attach -t  -- reattach to an existing named session
+tmux ls         -- list running tmux sessions
+Ctrl+b d        -- detach from the current tmux session
+Ctrl+b %        -- split tmux pane vertically
+Ctrl+b "        -- split tmux pane horizontally
+screen          -- start a new screen session
+screen -r       -- reattach to a detached screen session
+screen -ls      -- list running screen sessions
+Ctrl+a d        -- detach from the current screen session
+
+
+================================================================================
+23. FIREWALL BASICS
+================================================================================
+ufw             -- uncomplicated firewall, simple frontend for iptables (Ubuntu)
+ufw enable      -- enable the firewall
+ufw allow       -- allow traffic on a port/service                 | ufw allow 22
+ufw deny        -- deny traffic on a port/service
+ufw status      -- show current firewall rules and status
+firewalld       -- dynamic firewall manager (RHEL/CentOS/Fedora)
+firewall-cmd    -- command-line tool to manage firewalld           | firewall-cmd --list-all
+iptables        -- classic Linux packet filtering firewall tool
+iptables -L     -- list current iptables rules
+nft             -- modern nftables packet filtering framework
+
+
+================================================================================
+24. PERFORMANCE MONITORING
+================================================================================
+top             -- real-time overview of processes and resource usage
+htop            -- improved, colorized version of top (may need install)
+vmstat          -- report virtual memory, CPU, and process statistics
+iostat          -- report CPU and I/O device statistics (may need sysstat pkg)
+mpstat          -- report per-CPU processor statistics
+sar             -- collect and report system activity over time
+free -h         -- memory usage snapshot in human-readable form
+uptime          -- system load averages over 1/5/15 minutes
+nmon            -- interactive performance monitor (may need install)
+dstat           -- versatile resource statistics tool (may need install)
+
+
+================================================================================
+NOTES ON VERIFICATION
+================================================================================
+Core commands above (ls, chmod, chown, grep, ps, df, du, tar, useradd, usermod,
+passwd, id, head, tail, sed, awk, curl, wget, systemctl, journalctl, apt) were
+directly run with --help in a live Linux sandbox and matched what is shown here.
+
+Some tools (ip, ss, rsync, crontab, docker, ssh) were not installed in the
+sandbox environment used to build this file, but their syntax is long-standing,
+stable, and unchanged across mainstream distributions -- you can self-verify
+any of them on your own machine with:
+    man <command>
+    <command> --help
+================================================================================
