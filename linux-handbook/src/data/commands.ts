@@ -201,8 +201,6 @@ export const commandSections: CommandSection[] = [
       },
     ],
   },
-];
-
   {
     id: 4,
     title: "Users & Groups",
