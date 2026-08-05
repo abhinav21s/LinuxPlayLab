@@ -1,18 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Clock, Star, Trash2, Download } from 'lucide-react';
 import { commandHistoryService } from '../services/commandHistory';
 
 interface TerminalHistoryProps {
   onSelectCommand: (command: string) => void;
   isOpen: boolean;
+  refreshTrigger?: number;
 }
 
 export const TerminalHistory: React.FC<TerminalHistoryProps> = ({
   onSelectCommand,
   isOpen,
+  refreshTrigger = 0,
 }) => {
   const [tab, setTab] = useState<'recent' | 'favorites' | 'stats'>('recent');
   const [searchQuery, setSearchQuery] = useState('');
+  const [, setRefresh] = useState(0);
+
+  // Refresh when refreshTrigger changes
+  useEffect(() => {
+    setRefresh((prev) => prev + 1);
+  }, [refreshTrigger]);
 
   const getDisplayItems = () => {
     if (searchQuery) {
@@ -47,6 +55,7 @@ export const TerminalHistory: React.FC<TerminalHistoryProps> = ({
     if (confirm('Clear all command history? This cannot be undone.')) {
       commandHistoryService.clearHistory();
       setSearchQuery('');
+      setRefresh((prev) => prev + 1);
     }
   };
 

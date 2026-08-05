@@ -29,6 +29,7 @@ export const Terminal: React.FC<TerminalProps> = ({
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [showHistory, setShowHistory] = useState(false);
   const [currentThemeId, setCurrentThemeId] = useState('dracula');
+  const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
   const outputRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
   const commandHistory = commandHistoryService.getRecentCommands(50);
@@ -108,6 +109,7 @@ export const Terminal: React.FC<TerminalProps> = ({
     setInput('');
     setHistoryIndex(-1);
     securityService.resetMetrics();
+    setHistoryRefreshTrigger((prev) => prev + 1);
   };
 
   const handleCommand = async () => {
@@ -219,6 +221,7 @@ export const Terminal: React.FC<TerminalProps> = ({
       {showHistory && (
         <TerminalHistory
           isOpen={showHistory}
+          refreshTrigger={historyRefreshTrigger}
           onSelectCommand={(cmd) => {
             setInput(cmd);
             setShowHistory(false);
