@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import Fuse from 'fuse.js';
-import { Command, CommandSection } from '../types';
+import { CommandSection } from '../types';
 
 interface UseSearchProps {
   sections: CommandSection[];

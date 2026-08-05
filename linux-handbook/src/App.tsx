@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ThemeToggle } from './components/ThemeToggle';
 import { SearchBar } from './components/SearchBar';
 import { CommandSection } from './components/CommandSection';
-import { Terminal } from './components/Terminal';
 import { BlockedCommandsInfo } from './components/BlockedCommandsInfo';
+import { Terminal } from './components/Terminal';
 import { commandSections } from './data/commands';
 import { useSearch } from './hooks/useSearch';
 import { useLocalStorage } from './hooks/useLocalStorage';
@@ -14,7 +14,6 @@ function App() {
   const [darkMode, setDarkMode] = useLocalStorage<boolean>('linuxhandbook-darkmode', false);
   const [searchQuery, setSearchQuery] = useState('');
   const [favorites, setFavorites] = useLocalStorage<string[]>('linuxhandbook-favorites', []);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
   const [prefilledCommand, setPrefilledCommand] = useState<string>('');
 
@@ -38,18 +37,16 @@ function App() {
   };
 
   const handleCopyCommand = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedId(text);
-    setTimeout(() => setCopiedId(null), 2000);
+    navigator.clipboard.writeText(text).then(() => {
+      console.log('Copied:', text);
+    }).catch(err => {
+      console.error('Copy failed:', err);
+    });
   };
 
   const handleTryCommand = (command: Command) => {
     setPrefilledCommand(command.example);
     setIsTerminalOpen(true);
-  };
-
-  const handleTerminalReset = () => {
-    setPrefilledCommand('');
   };
 
   return (
@@ -66,7 +63,7 @@ function App() {
                 <div>
                   <h1 className="text-2xl font-bold">Linux Command Handbook</h1>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Learn and practice Linux commands safely in your browser
+                    Learn and practice Linux commands safely
                   </p>
                 </div>
               </div>
@@ -96,7 +93,7 @@ function App() {
         </header>
 
         {/* Main Content */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-96 sm:pb-0">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {filteredSections.length === 0 && searchQuery ? (
             <div className="text-center py-12">
               <p className="text-lg text-gray-600 dark:text-gray-400">
@@ -128,13 +125,12 @@ function App() {
           isOpen={isTerminalOpen}
           onClose={() => setIsTerminalOpen(false)}
           prefilledCommand={prefilledCommand}
-          onReset={handleTerminalReset}
         />
 
         {/* Footer */}
         <footer className="border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 text-center py-6 mt-12">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Phase 3: Command Interception Complete • Dangerous commands blocked before execution
+            Phase 1 & 3: UI, Search, Copy, Terminal + Command Interception
           </p>
         </footer>
       </div>

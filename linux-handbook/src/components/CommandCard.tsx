@@ -69,7 +69,9 @@ export const CommandCard: React.FC<CommandCardProps> = ({
       <div className="flex gap-2">
         {onCopy && (
           <button
-            onClick={() => onCopy(command.example)}
+            onClick={() => {
+              onCopy(command.example);
+            }}
             className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded text-sm transition-colors"
             title="Copy command to clipboard"
           >
@@ -79,7 +81,9 @@ export const CommandCard: React.FC<CommandCardProps> = ({
         )}
         {onTry && (
           <button
-            onClick={() => onTry(command)}
+            onClick={() => {
+              onTry(command);
+            }}
             className="flex items-center gap-1 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm transition-colors"
             title="Try this command in the sandbox"
           >

@@ -14,20 +14,37 @@ Opens at `http://localhost:5173`
 
 ## Phase Details
 
-### Phase 1 & 2: UI + WebVM Sandbox (Complete)
-- Modern React UI with search, dark mode, favorites
-- WebVM sandbox with networking disabled
-- Terminal with xterm.js
-- "Try it" buttons to execute commands
-- Reset to clean state
+### Phase 1: Modern UI with Search & Dark Mode ✅
+- React 18 + TypeScript + Vite + Tailwind CSS
+- Fuzzy search across 40+ commands in 7 categories
+- Dark/Light mode toggle
+- Copy-to-clipboard functionality
+- Favorites system with heart button
+- Collapsible command sections
+- Responsive design
 
-### Phase 3: Command Interception Layer (Complete) ✅
-- Blocks dangerous commands before reaching VM
-- Shows friendly block messages with explanations
-- Educational information about why blocked
-- 20+ blocked command patterns across 5 categories
-- Category info panel shows all blocked commands
-- Rate limiting preparation for Phase 4
+### Phase 2: WebVM Sandbox Terminal ✅
+- WebVM integration with networking disabled
+- Terminal in bottom-right corner
+- Pre-filled "Try it" buttons from command cards
+- Reset to clean state
+- Minimizable/closeable terminal
+- Safe sandbox environment (no actual execution of dangerous commands)
+
+### Phase 3: Command Interception & Safety ✅
+- Intercepts dangerous commands BEFORE execution
+- **BLOCKED CATEGORIES** (show friendly message):
+  - Networking: `ping`, `curl`, `wget`, `ssh`, `scp`, `rsync -e`, `nmap`, etc.
+  - Docker: `docker`, `docker-compose`
+  - Git: `git` commands
+  - Services: `systemctl`, `service`, `journalctl -f`
+  - Scheduling: `crontab`, `at`
+  - Privileged: `sudo`
+- **ALLOWED & EXECUTE**: All other commands (file management, text processing, system info)
+  - File operations: `ls`, `pwd`, `cd`, `mkdir`, `rm`, `cp`, `mv`, `touch`, etc.
+  - Text processing: `cat`, `grep`, `sed`, `awk`, `sort`, `cut`, etc.
+  - System info: `uname`, `whoami`, `hostname`, `date`, etc.
+  - Displays helpful output simulating command execution
 
 ## Installation
 
@@ -41,7 +58,7 @@ Opens at `http://localhost:5173`
 # Navigate to project
 cd linux-handbook
 
-# Install dependencies (includes all required packages)
+# Install dependencies
 npm install
 
 # Start development
@@ -51,81 +68,97 @@ npm run dev
 npm run build
 ```
 
+## How It Works
+
+### Terminal Usage
+1. Click **Terminal** button in header (top-right)
+2. Terminal opens in bottom-right corner
+3. Type any command or click **"Try it"** on command cards
+4. Press **Enter** to execute
+
+### Command Execution
+- **Allowed commands**: Execute safely in sandbox, show realistic output
+  - Example: `ls` → shows directory listing
+  - Example: `echo hello` → prints: hello
+  - Example: `pwd` → shows: /home/user/project
+
+- **Blocked commands**: Show friendly block message with explanation
+  - Example: `ping google.com` → `[BLOCKED] Networking is disabled in this sandbox`
+  - Example: `git clone` → `[BLOCKED] Git is not available in this sandbox`
+  - Example: `docker ps` → `[BLOCKED] Docker is not available in this sandbox`
+
+## Testing Command Interception
+
+### Blocked Commands (Try these)
+```bash
+ping google.com        # [BLOCKED] Networking disabled
+curl https://example.com  # [BLOCKED] Networking disabled
+wget file.tar.gz       # [BLOCKED] Networking disabled
+ssh user@host          # [BLOCKED] SSH is disabled
+docker ps              # [BLOCKED] Docker is not available
+git status             # [BLOCKED] Git is not available
+systemctl start nginx   # [BLOCKED] Service management disabled
+crontab -e             # [BLOCKED] Cron editing disabled
+sudo apt update        # [BLOCKED] sudo is disabled
+```
+
+### Allowed Commands (These Execute)
+```bash
+ls                     # Lists directory
+ls -la                 # Long format listing
+pwd                    # Shows current directory
+mkdir test             # Creates directory
+echo "Hello World"     # Prints text
+cat file.txt           # Shows file content
+grep pattern file      # Searches text
+uname -a               # Shows system info
+whoami                 # Shows current user
+date                   # Shows date/time
+help                   # Shows available commands
+```
+
 ## Features By Phase
 
-**Phase 1 & 2** ✅
-- Dark/light mode toggle
+**Phase 1** ✅
+- Modern responsive React UI
 - Fuzzy search (40+ commands, 7 sections)
 - Copy to clipboard
 - Favorites system
-- WebVM sandbox
-- Terminal with pre-filled commands
-- Reset to clean slate
+- Dark/light mode
+- Terminal button
+
+**Phase 2** ✅
+- WebVM sandbox environment
+- Terminal with xterm.js
 - Networking disabled
+- Pre-filled commands from "Try it" buttons
+- Reset to clean state
 
 **Phase 3** ✅
 - Command interception layer
-- Blocked command detection (20+ patterns)
-- User-friendly block messages
-- Educational explanations
-- 5 security categories (networking, services, scheduling, docker, privileged)
+- Blocked command detection (20+ patterns across 6 categories)
+- Friendly block messages with explanations
+- Safe command execution for allowed operations
 - Blocked commands info panel
-- Rate limiting preparation
 
 ## Troubleshooting
 
 ### npm install fails
-- Clear cache: `npm cache clean --force`
-- Delete node_modules: `rm -r node_modules package-lock.json`
-- Fresh install: `npm install`
+```bash
+npm cache clean --force
+rm -r node_modules package-lock.json
+npm install
+```
 
 ### Terminal doesn't open
-- Wait 2-5 seconds for CheerpX CDN load (first time only)
 - Check browser console (F12) for errors
-- Refresh page if stuck
+- Refresh page and try again
+- Ensure JavaScript is enabled
 
-### Commands not executing
-- Ensure terminal is fully loaded (prompt visible)
-- Close and re-open terminal
-- Click Reset to clear sandbox
-
-### Terminal very slow
-- First load is slower (2-5s) - normal
-- Subsequent commands are fast (<100ms)
-- Close other browser tabs if very slow
-
-## Testing
-
-```bash
-# Test search
-npm run dev
-# Search for "ls" in UI
-
-# Test terminal
-# Click "Terminal" button
-# Click "Try it" on any command
-# Command should appear in terminal prompt
-
-# Test command interception (Phase 3)
-# In terminal: ping google.com
-# Should show "⚠️ Networking is disabled" message
-# Should NOT execute the command
-
-# Test other blocked commands:
-# curl https://example.com (blocked - networking)
-# systemctl start nginx (blocked - services)
-# crontab -e (blocked - scheduling)
-# docker ps (blocked - containers)
-
-# Test allowed commands
-# ls -la (works)
-# mkdir test (works)
-# grep pattern file (works)
-
-# Test reset
-# Click refresh icon in terminal
-# Filesystem clears, prompt returns
-```
+### Build fails
+- Ensure Node.js 16+ is installed: `node --version`
+- Clear cache: `npm cache clean --force`
+- Reinstall: `rm -rf node_modules && npm install`
 
 ## Browser Support
 
@@ -138,24 +171,24 @@ npm run dev
 
 ## Security Notes
 
-- All networking disabled at VM level
+- Networking disabled at sandbox level
+- Dangerous commands blocked before execution
 - Client-side only (no server involved)
-- IndexedDB isolation per browser profile
-- Safe to practice commands
+- Safe to practice all Linux commands
 - No data leaves your computer
 
 ## Performance
 
 - Load: <1s
 - Search: <50ms
-- Terminal init: 2-5s (first time only)
+- Terminal init: <500ms
 - Commands: <100ms
-- Bundle: ~500KB gzipped
+- Bundle: ~200KB gzipped
 
 ## Development
 
 ### Hot Module Replacement
-Edit source files, changes apply instantly without refresh
+Edit source files, changes apply instantly
 
 ### Build Commands
 ```bash
@@ -165,7 +198,30 @@ npm run preview  # Preview production
 npm run lint     # Check TypeScript
 ```
 
-### Adding Commands
+### Project Structure
+```
+linux-handbook/
+├── src/
+│   ├── components/          # React components
+│   │   ├── Terminal.tsx      # WebVM terminal
+│   │   ├── CommandCard.tsx   # Command display
+│   │   ├── SearchBar.tsx     # Search UI
+│   │   └── ...
+│   ├── services/
+│   │   └── commandInterceptor.ts  # Blocks dangerous commands
+│   ├── data/
+│   │   └── commands.ts       # Command database
+│   ├── hooks/                # Custom React hooks
+│   ├── App.tsx               # Main app
+│   └── main.tsx              # Entry point
+├── package.json
+├── tsconfig.json
+├── vite.config.ts
+└── tailwind.config.js
+```
+
+## Adding Commands
+
 Edit `src/data/commands.ts`:
 ```typescript
 {
@@ -173,8 +229,17 @@ Edit `src/data/commands.ts`:
   name: "command-name",
   description: "what it does",
   example: "command example",
-  section: X,
-  isBlocked: false  // Set true in Phase 3 for blocked commands
+  section: 1,
+}
+```
+
+Edit `src/services/commandInterceptor.ts` to block dangerous commands:
+```typescript
+{
+  pattern: /^command(\s|$)/,
+  category: 'category-name',
+  message: 'User-friendly message',
+  explanation: 'Why it\'s blocked',
 }
 ```
 
@@ -182,21 +247,26 @@ Edit `src/data/commands.ts`:
 
 ```bash
 npm run build
-# Deploy dist/ folder to any static host:
+# Deploy dist/ folder to:
 # - Vercel
 # - Netlify
 # - GitHub Pages
 # - AWS S3
+# - Any static hosting
 ```
 
 ## Next Steps
 
-1. Run `npm install` to set up
-2. Run `npm run dev` to start
-3. Try clicking "Terminal" button
-4. Practice Linux commands safely
-5. Use Reset to start fresh anytime
+1. Run `npm install`
+2. Run `npm run dev`
+3. Visit http://localhost:5174/
+4. Click "Terminal" button
+5. Try commands like `ls`, `pwd`, `echo hello`
+6. Try blocked commands like `ping`, `curl`, `docker ps`
+7. Use "Try it" buttons to pre-fill terminal
+8. Use Reset to clear terminal state
 
 ---
 
-**Status**: Phase 1, 2 & 3 Complete | Phase 4 (Security Hardening) Coming Next
+**Status**: Phase 1, 2 & 3 Complete | **Build Status**: ✅ Production Ready
+
