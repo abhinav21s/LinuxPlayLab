@@ -26,3 +26,12 @@ dist-ssr
 .env
 .env.local
 .env.*.local
+
+# Documentation - keep only README.md
+PHASE*.md
+SECURITY.md
+INSTALLATION.md
+*_SUMMARY.md
+*_REPORT.md
+*.md
+!README.md

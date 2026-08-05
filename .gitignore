@@ -5,8 +5,13 @@ dist/
 .DS_Store
 *.log
 .env*
-PHASE2_INSTALLATION.md
-PHASE2_SUMMARY.md
-SECURITY.md
+
+# Documentation - keep only README.md in linux-handbook
+PHASE*.md
 START_HERE.md
-PHASE_COMPLETION_REPORT.md
+SECURITY.md
+INSTALLATION.md
+*_REPORT.md
+*_SUMMARY.md
+*.md
+!README.md
