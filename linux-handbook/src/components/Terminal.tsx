@@ -37,9 +37,15 @@ export const Terminal: React.FC<TerminalProps> = ({
   // Apply theme to terminal
   useEffect(() => {
     if (terminalRef.current) {
+      terminalThemesService.setTheme(currentThemeId);
       const theme = terminalThemesService.getTheme(currentThemeId);
       if (theme) {
         terminalThemesService.applyThemeToElement(terminalRef.current);
+        // Force update CSS variables
+        terminalRef.current.style.setProperty('--terminal-bg', theme.background);
+        terminalRef.current.style.setProperty('--terminal-fg', theme.foreground);
+        terminalRef.current.style.setProperty('--terminal-selection', theme.selection);
+        terminalRef.current.style.setProperty('--terminal-cursor', theme.cursor);
       }
     }
   }, [currentThemeId]);
