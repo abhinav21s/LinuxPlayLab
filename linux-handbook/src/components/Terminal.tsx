@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { X, RotateCcw, Minimize2, Maximize2 } from 'lucide-react';
-import { checkCommandInterception } from '../services/commandInterceptor';
 import { securityService } from '../services/securityHardening';
-import { bashEmulator } from '../services/bashEmulator';
+import { secureWebVM } from '../services/webvmService';
 
 interface TerminalProps {
   isOpen: boolean;
@@ -48,7 +47,7 @@ export const Terminal: React.FC<TerminalProps> = ({
     securityService.resetMetrics();
   };
 
-  const handleCommand = () => {
+  const handleCommand = async () => {
     if (!input.trim()) return;
 
     const cmdTrimmed = input.trim();
@@ -59,20 +58,6 @@ export const Terminal: React.FC<TerminalProps> = ({
     if (!rateLimitCheck.allowed) {
       setOutput((prev) => [...prev, `[RATE LIMITED] ${rateLimitCheck.message}`]);
       securityService.recordBlockedAttempt(cmdTrimmed, 'Rate limited');
-      setInput('');
-      return;
-    }
-
-    // Check if command is blocked
-    const interception = checkCommandInterception(cmdTrimmed);
-
-    if (interception.isBlocked) {
-      setOutput((prev) => [
-        ...prev,
-        `[BLOCKED] ${interception.message}`,
-        `[INFO] ${interception.explanation}`,
-      ]);
-      securityService.recordBlockedAttempt(cmdTrimmed, interception.message || 'Unknown');
       setInput('');
       return;
     }
@@ -90,17 +75,18 @@ export const Terminal: React.FC<TerminalProps> = ({
       return;
     }
 
-    // Record command and execute
+    // Record command and execute via Secure WebVM
     securityService.recordCommand(cmdTrimmed);
-    const result = bashEmulator.execute(cmdTrimmed);
+    const result = await secureWebVM.executeCommand(cmdTrimmed);
 
+    // Display output
     if (result.output) {
       setOutput((prev) => [...prev, result.output]);
     }
-    if (result.stderr) {
-      setOutput((prev) => [...prev, `stderr: ${result.stderr}`]);
+    if (result.error && !result.success) {
+      setOutput((prev) => [...prev, `[ERROR] ${result.error}`]);
     }
-    if (result.exitCode !== 0) {
+    if (!result.success && result.exitCode !== 0) {
       setOutput((prev) => [...prev, `exit code: ${result.exitCode}`]);
     }
 
@@ -201,7 +187,7 @@ export const Terminal: React.FC<TerminalProps> = ({
 
       {/* Footer */}
       <div className="px-3 py-2 bg-gray-800 text-xs text-gray-500 border-t border-gray-700">
-        <span>✅ Bash Emulator Ready | Blocked: ping curl wget ssh git docker systemctl | Rate: 10/min</span>
+        <span>✅ Secure WebVM Active | Blocked: ping curl wget ssh git docker systemctl | Rate: 10/min</span>
       </div>
     </div>
   );
