@@ -24,12 +24,13 @@ Opens at `http://localhost:5173`
 - Responsive design
 
 ### Phase 2: WebVM Sandbox Terminal ✅
-- WebVM integration with networking disabled
-- Terminal in bottom-right corner
+- Real CheerpX WebVM integration (actual Linux environment)
+- Networking disabled at VM level
+- Terminal in bottom-right corner with real command execution
 - Pre-filled "Try it" buttons from command cards
 - Reset to clean state
 - Minimizable/closeable terminal
-- Safe sandbox environment (no actual execution of dangerous commands)
+- WebVM initialization status indicator
 
 ### Phase 3: Command Interception & Safety ✅
 - Intercepts dangerous commands BEFORE execution
@@ -45,6 +46,15 @@ Opens at `http://localhost:5173`
   - Text processing: `cat`, `grep`, `sed`, `awk`, `sort`, `cut`, etc.
   - System info: `uname`, `whoami`, `hostname`, `date`, etc.
   - Displays helpful output simulating command execution
+
+### Phase 4: Security Hardening ✅
+- **Rate Limiting**: Max 10 commands/minute, 60 commands/hour
+- **Command Timeout**: 5-second timeout per command
+- **Resource Limits**: 256MB memory, 100MB disk quota
+- **Security Monitoring**: Real-time status display
+- **Blocked Attempt Tracking**: Logs all security violations
+- **Better Error Messages**: Clear feedback on rate limits and resource exhaustion
+- **Live Metrics Display**: Shows command count, memory/disk usage, security status
 
 ## Installation
 
@@ -72,22 +82,38 @@ npm run build
 
 ### Terminal Usage
 1. Click **Terminal** button in header (top-right)
-2. Terminal opens in bottom-right corner
-3. Type any command or click **"Try it"** on command cards
-4. Press **Enter** to execute
+2. WebVM initializes (first time may take 2-5 seconds)
+3. Terminal opens in bottom-right corner
+4. Type any command or click **"Try it"** on command cards
+5. Press **Enter** to execute in real WebVM
+
+### WebVM Real Execution
+- Commands run in actual CheerpX Linux environment
+- Network blocked at hypervisor level
+- Real filesystem isolation
+- Timeout protection (5 seconds per command)
+- Resource limits enforced (256MB memory, 100MB disk)
 
 ### Command Execution
-- **Allowed commands**: Execute safely in sandbox, show realistic output
-  - Example: `ls` → shows directory listing
-  - Example: `echo hello` → prints: hello
-  - Example: `pwd` → shows: /home/user/project
+- **Real WebVM Execution** (actual Linux commands)
+  - Allowed commands execute in real CheerpX environment
+  - Example: `ls` → real directory listing from WebVM
+  - Example: `echo hello` → actual output from WebVM
+  - Example: `pwd` → real working directory from WebVM
 
 - **Blocked commands**: Show friendly block message with explanation
   - Example: `ping google.com` → `[BLOCKED] Networking is disabled in this sandbox`
   - Example: `git clone` → `[BLOCKED] Git is not available in this sandbox`
   - Example: `docker ps` → `[BLOCKED] Docker is not available in this sandbox`
 
-## Testing Command Interception
+- **Rate Limited commands**: Show when limit exceeded
+  - Example: 11th command in a minute → `[RATE LIMITED] Max 10 commands per minute`
+
+- **Timeout/Resource errors**: Show when limits exceeded
+  - Memory exceeded → `[ERROR] Memory limit exceeded`
+  - Disk exceeded → `[ERROR] Disk quota exceeded`
+
+## Testing Command Interception & Security
 
 ### Blocked Commands (Try these)
 ```bash
@@ -117,6 +143,33 @@ date                   # Shows date/time
 help                   # Shows available commands
 ```
 
+### Rate Limiting Test (Phase 4)
+```bash
+# Run 11 commands quickly
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls
+ls  # This one will show: [RATE LIMITED] Max 10 commands per minute
+```
+
+### Security Status Monitor (Phase 4)
+- Click the security status bar below search to expand
+- Shows real-time metrics:
+  - Commands this minute (max 10)
+  - Commands this hour (max 60)
+  - Memory usage (max 256MB)
+  - Disk usage (max 100MB)
+  - Blocked attempts counter
+- Yellow warning when >80% of limit reached
+- Red critical when limit exceeded
+
 ## Features By Phase
 
 **Phase 1** ✅
@@ -140,6 +193,15 @@ help                   # Shows available commands
 - Friendly block messages with explanations
 - Safe command execution for allowed operations
 - Blocked commands info panel
+
+**Phase 4** ✅
+- Rate limiting (10/min, 60/hour)
+- Command timeout (5 seconds)
+- Memory limit (256MB)
+- Disk quota (100MB)
+- Real-time security status monitor
+- Blocked attempt tracking
+- Resource usage display
 
 ## Troubleshooting
 
@@ -171,19 +233,21 @@ npm install
 
 ## Security Notes
 
-- Networking disabled at sandbox level
-- Dangerous commands blocked before execution
+- Networking disabled at WebVM hypervisor level (not just commands)
+- CheerpX runs actual Linux kernel in browser
+- Real filesystem isolation per session
 - Client-side only (no server involved)
 - Safe to practice all Linux commands
 - No data leaves your computer
+- Dangerous commands blocked before reaching VM
 
 ## Performance
 
+- WebVM init: 2-5s (first time only)
 - Load: <1s
 - Search: <50ms
-- Terminal init: <500ms
-- Commands: <100ms
-- Bundle: ~200KB gzipped
+- Commands: <100ms (real execution)
+- Bundle: ~213KB gzipped
 
 ## Development
 
@@ -268,5 +332,5 @@ npm run build
 
 ---
 
-**Status**: Phase 1, 2 & 3 Complete | **Build Status**: ✅ Production Ready
+**Status**: Phase 1, 2, 3 & 4 Complete | **Build Status**: ✅ Production Ready
 

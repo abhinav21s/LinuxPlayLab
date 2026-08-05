@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { X, RotateCcw, Minimize2, Maximize2 } from 'lucide-react';
 import { checkCommandInterception } from '../services/commandInterceptor';
+import { securityService } from '../services/securityHardening';
+import { bashEmulator } from '../services/bashEmulator';
 
 interface TerminalProps {
   isOpen: boolean;
@@ -17,7 +19,8 @@ export const Terminal: React.FC<TerminalProps> = ({
   const [isMinimized, setIsMinimized] = useState(false);
   const [output, setOutput] = useState<string[]>([
     '$ Welcome to Linux Command Handbook Sandbox',
-    '$ Type commands below. Networking/Docker/Git/Services are blocked.',
+    '$ Type "help" for available commands',
+    '$ Networking/Docker/Git/Services are BLOCKED',
     '',
   ]);
   const [input, setInput] = useState('');
@@ -42,6 +45,7 @@ export const Terminal: React.FC<TerminalProps> = ({
       '',
     ]);
     setInput('');
+    securityService.resetMetrics();
   };
 
   const handleCommand = () => {
@@ -49,6 +53,15 @@ export const Terminal: React.FC<TerminalProps> = ({
 
     const cmdTrimmed = input.trim();
     setOutput((prev) => [...prev, `$ ${cmdTrimmed}`]);
+
+    // Phase 4: Check rate limiting
+    const rateLimitCheck = securityService.canExecuteCommand();
+    if (!rateLimitCheck.allowed) {
+      setOutput((prev) => [...prev, `[RATE LIMITED] ${rateLimitCheck.message}`]);
+      securityService.recordBlockedAttempt(cmdTrimmed, 'Rate limited');
+      setInput('');
+      return;
+    }
 
     // Check if command is blocked
     const interception = checkCommandInterception(cmdTrimmed);
@@ -59,138 +72,39 @@ export const Terminal: React.FC<TerminalProps> = ({
         `[BLOCKED] ${interception.message}`,
         `[INFO] ${interception.explanation}`,
       ]);
+      securityService.recordBlockedAttempt(cmdTrimmed, interception.message || 'Unknown');
       setInput('');
       return;
     }
 
-    // Simulate command execution based on command type
-    simulateCommand(cmdTrimmed);
-    setInput('');
-  };
-
-  const simulateCommand = (cmd: string) => {
-    const parts = cmd.split(/\s+/);
-    const command = parts[0];
-
-    switch (command) {
-      // File listing
-      case 'ls':
-      case 'ls-l':
-      case 'ls-la':
-        setOutput((prev) => [
-          ...prev,
-          'total 24',
-          'drwxr-xr-x  5 user  group  4096 Aug  5 10:30 .',
-          'drwxr-xr-x 10 user  group  4096 Aug  05 10:25 ..',
-          '-rw-r--r--  1 user  group   220 Aug  05 10:30 README.md',
-          'drwxr-xr-x  3 user  group  4096 Aug  05 10:30 src',
-          'drwxr-xr-x  2 user  group  4096 Aug  05 10:30 docs',
-        ]);
-        break;
-
-      // Current directory
-      case 'pwd':
-        setOutput((prev) => [...prev, '/home/user/project']);
-        break;
-
-      // Make directory
-      case 'mkdir':
-        if (parts[1]) {
-          setOutput((prev) => [...prev, `created directory: ${parts[1]}`]);
-        } else {
-          setOutput((prev) => [...prev, 'mkdir: missing operand']);
-        }
-        break;
-
-      // Touch (create file)
-      case 'touch':
-        if (parts[1]) {
-          setOutput((prev) => [...prev, `created: ${parts[1]}`]);
-        } else {
-          setOutput((prev) => [...prev, 'touch: missing file operand']);
-        }
-        break;
-
-      // Echo
-      case 'echo':
-        const text = parts.slice(1).join(' ');
-        setOutput((prev) => [...prev, text]);
-        break;
-
-      // Cat (view file)
-      case 'cat':
-        if (!parts[1]) {
-          setOutput((prev) => [...prev, 'cat: missing file operand']);
-        } else {
-          setOutput((prev) => [
-            ...prev,
-            `[File: ${parts[1]}]`,
-            'This is a simulated file content.',
-            'In a real WebVM, this would show actual file contents.',
-          ]);
-        }
-        break;
-
-      // Grep (search)
-      case 'grep':
-        setOutput((prev) => [
-          ...prev,
-          'example_line_1: matching content',
-          'example_line_3: matching content',
-        ]);
-        break;
-
-      // System info
-      case 'uname':
-        if (cmd.includes('-a')) {
-          setOutput((prev) => [
-            ...prev,
-            'Linux sandbox 5.15.0-generic #1 SMP x86_64 GNU/Linux',
-          ]);
-        } else {
-          setOutput((prev) => [...prev, 'Linux']);
-        }
-        break;
-
-      case 'whoami':
-        setOutput((prev) => [...prev, 'user']);
-        break;
-
-      case 'hostname':
-        setOutput((prev) => [...prev, 'sandbox']);
-        break;
-
-      case 'date':
-        setOutput((prev) => [
-          ...prev,
-          new Date().toLocaleString('en-US', { timeZone: 'UTC' }),
-        ]);
-        break;
-
-      // Help
-      case 'help':
-      case '?':
-        setOutput((prev) => [
-          ...prev,
-          'Available commands (simulated):',
-          '  ls, pwd, mkdir, touch, echo, cat, grep',
-          '  uname, whoami, hostname, date',
-          '  cp, mv, rm, find, head, tail',
-          '  wc, sort, cut, tr',
-          '',
-          'Blocked commands:',
-          '  ping, curl, wget, ssh, git, docker, systemctl, crontab, sudo',
-        ]);
-        break;
-
-      case 'clear':
-        setOutput([]);
-        break;
-
-      default:
-        // For unrecognized commands, just show command not found
-        setOutput((prev) => [...prev, `${command}: command not found`]);
+    // Check resource limits
+    if (securityService.isMemoryLimitExceeded()) {
+      setOutput((prev) => [...prev, `[ERROR] Memory limit exceeded: ${securityService.getMetrics().memoryUsedMb}MB used`]);
+      setInput('');
+      return;
     }
+
+    if (securityService.isDiskLimitExceeded()) {
+      setOutput((prev) => [...prev, `[ERROR] Disk quota exceeded: ${securityService.getMetrics().diskUsedMb}MB used`]);
+      setInput('');
+      return;
+    }
+
+    // Record command and execute
+    securityService.recordCommand(cmdTrimmed);
+    const result = bashEmulator.execute(cmdTrimmed);
+
+    if (result.output) {
+      setOutput((prev) => [...prev, result.output]);
+    }
+    if (result.stderr) {
+      setOutput((prev) => [...prev, `stderr: ${result.stderr}`]);
+    }
+    if (result.exitCode !== 0) {
+      setOutput((prev) => [...prev, `exit code: ${result.exitCode}`]);
+    }
+
+    setInput('');
   };
 
   if (!isOpen) return null;
@@ -245,9 +159,13 @@ export const Terminal: React.FC<TerminalProps> = ({
                     ? 'text-red-400'
                     : line.includes('[INFO]')
                       ? 'text-yellow-400'
-                      : line.includes('[File:')
-                        ? 'text-blue-400'
-                        : 'text-green-400'
+                      : line.includes('[ERROR]')
+                        ? 'text-red-500'
+                        : line.includes('[RATE LIMITED]')
+                          ? 'text-orange-400'
+                          : line.includes('exit code:')
+                            ? 'text-gray-500 text-xs'
+                            : 'text-green-400'
                 }
               >
                 {line}
@@ -268,7 +186,7 @@ export const Terminal: React.FC<TerminalProps> = ({
                 }
               }}
               className="flex-1 bg-transparent text-green-400 font-mono text-sm outline-none"
-              placeholder="Type command... (try: ls, pwd, echo hello)"
+              placeholder="Type command... (ls, pwd, echo, help, etc.)"
               autoFocus
             />
           </div>
@@ -283,7 +201,7 @@ export const Terminal: React.FC<TerminalProps> = ({
 
       {/* Footer */}
       <div className="px-3 py-2 bg-gray-800 text-xs text-gray-500 border-t border-gray-700">
-        <span>Type "help" for commands | Blocked: ping curl wget ssh git docker systemctl</span>
+        <span>✅ Bash Emulator Ready | Blocked: ping curl wget ssh git docker systemctl | Rate: 10/min</span>
       </div>
     </div>
   );

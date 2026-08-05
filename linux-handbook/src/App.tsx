@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ThemeToggle } from './components/ThemeToggle';
 import { SearchBar } from './components/SearchBar';
 import { CommandSection } from './components/CommandSection';
+import { SecurityStatus } from './components/SecurityStatus';
 import { BlockedCommandsInfo } from './components/BlockedCommandsInfo';
 import { Terminal } from './components/Terminal';
 import { commandSections } from './data/commands';
@@ -89,6 +90,11 @@ function App() {
               onChange={setSearchQuery}
               placeholder="Search commands by name, description, or example..."
             />
+
+            {/* Phase 4: Security Status Monitor */}
+            <div className="mt-4">
+              <SecurityStatus className="w-full" />
+            </div>
           </div>
         </header>
 
