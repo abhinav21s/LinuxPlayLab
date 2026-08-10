@@ -5164,3 +5164,18 @@ export const getTotalCommandCount = (): number => {
 export const getTotalBlockedCount = (): number => {
   return getBlockedCommands().length;
 };
+
+// Compact compatibility view for the handbook browsing UI.
+export const commandSections = SECTIONS.map((section) => ({
+  id: section.number,
+  title: section.title,
+  commands: section.commands.map((command) => ({
+    id: command.id,
+    name: command.name,
+    description: command.description,
+    example: command.example || command.usage,
+    section: section.number,
+    isBlocked: command.isBlocked,
+    blockReason: command.blockReason,
+  })),
+}));

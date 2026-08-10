@@ -1,149 +1,54 @@
-import { useState, useEffect } from 'react';
-import { ThemeToggle } from './components/ThemeToggle';
-import { SearchBar } from './components/SearchBar';
+import { useEffect, useMemo, useState } from 'react';
+import { BookOpen, Command as CommandIcon, Heart, Menu, Search, ShieldCheck, Terminal as TerminalIcon, X } from 'lucide-react';
 import { CommandSection } from './components/CommandSection';
+import { SearchBar } from './components/SearchBar';
 import { SecurityStatus } from './components/SecurityStatus';
 import { Terminal } from './components/Terminal';
 import { commandSections } from './data/commands';
-import { useSearch } from './hooks/useSearch';
 import { useLocalStorage } from './hooks/useLocalStorage';
+import { useSearch } from './hooks/useSearch';
 import { Command } from './types';
-import { Book, Terminal as TerminalIcon, Search } from 'lucide-react';
 
 function App() {
-  const [darkMode, setDarkMode] = useLocalStorage<boolean>('linuxhandbook-darkmode', false);
   const [searchQuery, setSearchQuery] = useState('');
   const [favorites, setFavorites] = useLocalStorage<string[]>('linuxhandbook-favorites', []);
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
-  const [prefilledCommand, setPrefilledCommand] = useState<string>('');
+  const [prefilledCommand, setPrefilledCommand] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(commandSections[0]?.id ?? 1);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const favoriteSet = useMemo(() => new Set(favorites), [favorites]);
+  const searchedSections = useSearch({ sections: commandSections, query: searchQuery });
+  const isBrowsingAll = Boolean(searchQuery.trim()) || showFavoritesOnly;
+  const filteredSections = isBrowsingAll
+    ? searchedSections.map((section) => ({ ...section, commands: showFavoritesOnly ? section.commands.filter((command) => favoriteSet.has(command.id)) : section.commands })).filter((section) => section.commands.length > 0)
+    : commandSections.filter((section) => section.id === selectedCategory);
+  const resultCount = filteredSections.reduce((count, section) => count + section.commands.length, 0);
 
-  const favoriteSet = new Set(favorites);
-  const filteredSections = useSearch({ sections: commandSections, query: searchQuery });
-
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
-
-  const handleToggleFavorite = (id: string) => {
-    setFavorites(
-      favorites.includes(id)
-        ? favorites.filter(f => f !== id)
-        : [...favorites, id]
-    );
-  };
-
-  const handleCopyCommand = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      console.log('Copied:', text);
-    }).catch(err => {
-      console.error('Copy failed:', err);
-    });
-  };
-
-  const handleTryCommand = (command: Command) => {
-    setPrefilledCommand(command.example);
-    setIsTerminalOpen(true);
-  };
+  useEffect(() => { document.documentElement.classList.add('dark'); }, []);
+  const handleToggleFavorite = (id: string) => setFavorites(favorites.includes(id) ? favorites.filter((favorite) => favorite !== id) : [...favorites, id]);
+  const handleCopyCommand = (text: string) => navigator.clipboard.writeText(text).catch((error) => console.error('Copy failed:', error));
+  const handleTryCommand = (command: Command) => { setPrefilledCommand(command.example); setIsTerminalOpen(true); };
+  const selectCategory = (id: number) => { setSelectedCategory(id); setSearchQuery(''); setShowFavoritesOnly(false); setMobileNavOpen(false); };
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
-      <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors">
-        {/* Header */}
-        <header className="sticky top-0 z-40 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg">
-                  <Book className="text-white" size={28} />
-                </div>
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                    Linux Command Handbook
-                  </h1>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    Learn and practice Linux commands in a safe sandbox environment
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setIsTerminalOpen(!isTerminalOpen)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all ${
-                    isTerminalOpen
-                      ? 'bg-blue-500 text-white shadow-lg'
-                      : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600'
-                  }`}
-                  title="Toggle terminal"
-                >
-                  <TerminalIcon size={18} />
-                  <span className="hidden sm:inline">Terminal</span>
-                </button>
-                <ThemeToggle isDark={darkMode} onToggle={() => setDarkMode(!darkMode)} />
-              </div>
-            </div>
+    <div className="min-h-screen bg-slate-950 text-slate-100">
+      <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/95 backdrop-blur-xl">
+        <div className="mx-auto max-w-[1440px] px-4 py-5 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-4"><div className="flex min-w-0 items-center gap-3"><div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-slate-100"><BookOpen className="text-slate-900" size={18} /></div><div><h1 className="truncate text-base font-bold tracking-tight">Linux Playbook</h1><p className="hidden text-[11px] text-slate-500 sm:block">Command reference &amp; sandbox</p></div></div><button onClick={() => setIsTerminalOpen(!isTerminalOpen)} className={`ml-auto flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${isTerminalOpen ? 'bg-white text-slate-950' : 'border border-slate-700 text-slate-200 hover:bg-slate-800'}`} title="Toggle terminal"><TerminalIcon size={16} /><span className="hidden sm:inline">Terminal</span></button></div>
+          <div className="mt-5 flex items-center gap-3"><div className="min-w-0 flex-1"><SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search commands, descriptions, or examples..." /></div><button onClick={() => setMobileNavOpen(!mobileNavOpen)} className="rounded-lg border border-slate-700 p-2.5 text-slate-300 md:hidden" aria-label="Toggle categories">{mobileNavOpen ? <X size={18} /> : <Menu size={18} />}</button></div>
+        </div>
+      </header>
 
-            {/* Search Bar */}
-            <SearchBar
-              value={searchQuery}
-              onChange={setSearchQuery}
-              placeholder="Search commands by name, description, or example..."
-            />
+      <main className="mx-auto grid max-w-[1440px] grid-cols-1 gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:px-8">
+        <aside className={`${mobileNavOpen ? 'block' : 'hidden'} lg:block`}><div className="lg:sticky lg:top-28"><div className="mb-5 flex items-center justify-between"><p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">Categories</p><span className="text-[11px] text-slate-500">{commandSections.length}</span></div><nav className="space-y-1">{commandSections.map((section) => <button key={section.id} onClick={() => selectCategory(section.id)} className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${!isBrowsingAll && selectedCategory === section.id ? 'bg-slate-100 font-semibold text-slate-950' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100'}`}><span className="truncate">{section.title}</span><span className="ml-2 text-[10px] text-slate-500">{section.commands.length}</span></button>)}</nav></div></aside>
 
-            {/* Phase 4: Security Status Monitor */}
-            <div className="mt-4">
-              <SecurityStatus className="w-full" />
-            </div>
-          </div>
-        </header>
-
-        {/* Main Content */}
-        <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {filteredSections.length === 0 && searchQuery ? (
-            <div className="text-center py-16">
-              <Search className="mx-auto mb-4 text-gray-400" size={48} />
-              <p className="text-lg text-gray-600 dark:text-gray-400">
-                No commands found matching <strong className="text-gray-900 dark:text-gray-100">"{searchQuery}"</strong>
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
-                Try searching for a different command name, description, or example
-              </p>
-            </div>
-          ) : (
-            <>
-              {filteredSections.map(section => (
-                <CommandSection
-                  key={section.id}
-                  id={section.id}
-                  title={section.title}
-                  commands={section.commands}
-                  onTryCommand={handleTryCommand}
-                  onCopyCommand={handleCopyCommand}
-                  onFavorite={handleToggleFavorite}
-                  favorites={favoriteSet}
-                />
-              ))}
-            </>
-          )}
-        </main>
-
-        {/* Terminal Component */}
-        <Terminal
-          isOpen={isTerminalOpen}
-          onClose={() => setIsTerminalOpen(false)}
-          prefilledCommand={prefilledCommand}
-        />
-
-        {/* Footer */}
-        <footer className="border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 text-center py-8 mt-16">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            🔒 Phase 1-6 Complete: UI • Search • Dark Mode • Secure WebVM • Command Blocking • Security Hardening • Themes • Testing
-          </p>
-        </footer>
-      </div>
+        <section className="min-w-0"><div className="mb-9 flex flex-col gap-5 border-b border-slate-800 pb-6 sm:flex-row sm:items-end sm:justify-between"><div><p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-blue-400"><CommandIcon size={14} /> {isBrowsingAll ? 'Search results' : 'Reference'}</p><h2 className="text-2xl font-bold tracking-tight">{isBrowsingAll ? `${resultCount} commands found` : commandSections.find((section) => section.id === selectedCategory)?.title}</h2></div><div className="flex items-center gap-3"><button onClick={() => setShowFavoritesOnly(!showFavoritesOnly)} className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${showFavoritesOnly ? 'border-rose-900 bg-rose-950/40 text-rose-300' : 'border-slate-700 text-slate-300 hover:bg-slate-900'}`}><Heart size={14} className={showFavoritesOnly ? 'fill-current' : ''} /> Favorites {favorites.length ? `(${favorites.length})` : ''}</button><SecurityStatus /></div></div>
+          {filteredSections.length === 0 ? <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900 py-20 text-center"><Search className="mx-auto mb-4 text-slate-500" size={38} /><p className="font-semibold text-slate-200">{showFavoritesOnly ? 'No saved commands yet.' : 'No commands found'}</p><p className="mt-2 text-sm text-slate-500">{showFavoritesOnly ? 'Use the heart on a command to save it here.' : 'Try a different command name or description.'}</p></div> : filteredSections.map((section) => <CommandSection key={section.id} {...section} onTryCommand={handleTryCommand} onCopyCommand={handleCopyCommand} onFavorite={handleToggleFavorite} favorites={favoriteSet} />)}
+        </section>
+      </main>
+      <Terminal isOpen={isTerminalOpen} onClose={() => setIsTerminalOpen(false)} prefilledCommand={prefilledCommand} />
+      <footer className="border-t border-slate-800 bg-slate-950 py-7"><div className="mx-auto flex max-w-[1440px] flex-col gap-2 px-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8"><span>Linux Playbook · a practical command reference</span><span className="flex items-center gap-1.5"><ShieldCheck size={13} className="text-emerald-500" /> Restricted browser sandbox</span></div></footer>
     </div>
   );
 }

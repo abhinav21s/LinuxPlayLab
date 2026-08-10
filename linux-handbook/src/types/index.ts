@@ -15,7 +15,6 @@ export interface CommandSection {
 }
 
 export interface AppState {
-  darkMode: boolean;
   favorites: Set<string>;
   searchQuery: string;
 }
