@@ -76,14 +76,14 @@ header>div>div:first-child>div:first-child>div:first-child {
 }
 
 header h1 {
-  margin-left: 0.15rem;
+  margin-left: 1rem;
   font-size: 1.45rem !important;
   line-height: 1.15;
 }
 
 header h1+p {
   margin-top: 0.35rem;
-  margin-left: 0.15rem;
+  margin-left: 1rem;
   font-size: 0.82rem !important;
 }
 
@@ -115,6 +115,14 @@ main {
 
 main>aside {
   padding-top: 0.75rem;
+  align-self: start;
+  min-width: 0;
+  position: sticky;
+  top: 7rem;
+  height: calc(100vh - 8.5rem);
+  border-right: 1px solid #1e293b;
+  padding-right: 1.25rem;
+  overflow: hidden;
 }
 
 main>aside>div>div:first-child {
@@ -134,6 +142,30 @@ main nav button {
 main nav button>span:last-child {
   display: none;
 }
+
+main nav button[class*="bg-slate-100"] { justify-content: center; }
+
+main>aside>div {
+  height: 100%;
+  max-height: none;
+  overflow-y: auto;
+  padding-bottom: 1rem;
+  scrollbar-width: none;
+}
+
+main>aside>div:hover,
+main>aside>div:focus-within {
+  scrollbar-width: thin;
+  scrollbar-color: #475569 transparent;
+}
+
+main>aside>div::-webkit-scrollbar { width: 0; }
+main>aside>div:hover::-webkit-scrollbar,
+main>aside>div:focus-within::-webkit-scrollbar { width: 6px; }
+main>aside>div::-webkit-scrollbar-track { background: transparent; }
+main>aside>div::-webkit-scrollbar-thumb { background: #475569; border-radius: 999px; }
+
+main>section>section>div:first-child { transform: translateY(-0.85rem); }
 
 main>section>div:first-child {
   margin-bottom: 2.5rem !important;
@@ -209,6 +241,20 @@ main section>div:first-child>div:last-child>button:hover {
 
   main>section {
     padding-left: 0;
+  }
+
+  main>aside {
+    position: static;
+    top: auto;
+    height: auto;
+    border-right: 0;
+    padding-right: 0;
+    overflow: visible;
+  }
+
+  main>aside>div {
+    height: auto;
+    max-height: calc(100vh - 9rem);
   }
 
   main article {
