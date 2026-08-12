@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Star, Trash2, Download } from 'lucide-react';
+import { Clock, Star, Trash2, Download, X } from 'lucide-react';
 import { commandHistoryService } from '../services/commandHistory';
 
 interface TerminalHistoryProps {
   onSelectCommand: (command: string) => void;
   isOpen: boolean;
   refreshTrigger?: number;
+  onClose?: () => void;
 }
 
 export const TerminalHistory: React.FC<TerminalHistoryProps> = ({
   onSelectCommand,
   isOpen,
   refreshTrigger = 0,
+  onClose,
 }) => {
   const [tab, setTab] = useState<'recent' | 'favorites' | 'stats'>('recent');
   const [searchQuery, setSearchQuery] = useState('');
@@ -70,11 +72,14 @@ export const TerminalHistory: React.FC<TerminalHistoryProps> = ({
     <div className="absolute top-0 right-0 w-80 h-full bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 shadow-lg flex flex-col z-40">
       {/* Header */}
       <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2">
           <Clock size={18} className="text-blue-500" />
           <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
             Command History
           </h2>
+          </div>
+          {onClose && <button onClick={onClose} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-white" title="Close history" aria-label="Close history"><X size={16} /></button>}
         </div>
 
         {/* Search */}

@@ -25,6 +25,62 @@ input {
   font: inherit;
 }
 
+.terminal-window {
+  isolation: isolate;
+  backdrop-filter: blur(18px);
+}
+
+.terminal-window input::placeholder { color: #64748b; }
+.terminal-window button { transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease; }
+.terminal-window .font-mono { letter-spacing: 0.01em; }
+.terminal-window > div:first-child,
+.terminal-window > .border-b,
+.terminal-window > .text-xs { flex-shrink: 0; }
+.terminal-window > .flex-1 { min-height: 0; }
+
+/* Docked terminals occupy only the command workspace. The site header and
+   category rail remain outside the dock geometry. */
+.terminal-dock-right {
+  top: 9rem;
+  bottom: 0;
+  width: 48vw !important;
+  min-width: 420px;
+}
+
+.terminal-dock-bottom {
+  left: 280px;
+  width: calc(100vw - 280px);
+  top: 42vh;
+  height: 58vh !important;
+  min-height: 420px;
+}
+
+.terminal-resize-handle {
+  position: absolute;
+  z-index: 5;
+  right: 0;
+  bottom: 0;
+  width: 18px;
+  height: 18px;
+  cursor: nwse-resize;
+}
+
+.terminal-resize-handle::after {
+  content: '';
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid #64748b;
+  border-bottom: 2px solid #64748b;
+}
+
+.terminal-resize-left { left: 0; right: auto; bottom: 0; width: 8px; height: 100%; cursor: ew-resize; }
+.terminal-resize-left::after { right: auto; left: 2px; top: 50%; border-right: 0; border-left: 2px solid #64748b; border-bottom: 0; border-top: 2px solid #64748b; }
+.terminal-resize-top { left: 0; right: 0; top: 0; bottom: auto; width: 100%; height: 8px; cursor: ns-resize; }
+.terminal-resize-top::after { display: none; }
+
 /* Layout polish: keep the navigation airy and the search field dominant. */
 header>div {
   position: relative;
@@ -106,6 +162,24 @@ header button[title="Toggle terminal"]:hover {
   color: #f8fafc;
 }
 
+header button[title="Toggle terminal"] + div {
+  padding: 0.4rem;
+}
+
+header button[title="Toggle terminal"] ~ div[role="menu"],
+header .absolute.right-0.top-full {
+  padding: 0.75rem !important;
+}
+
+header .absolute.right-0.top-full p {
+  padding: 0.4rem 0.65rem 0.6rem !important;
+}
+
+header .absolute.right-0.top-full button {
+  margin: 0.15rem 0;
+  padding: 0.65rem 0.7rem !important;
+}
+
 main {
   padding-top: 3.5rem !important;
   padding-bottom: 4rem !important;
@@ -143,7 +217,9 @@ main nav button>span:last-child {
   display: none;
 }
 
-main nav button[class*="bg-slate-100"] { justify-content: center; }
+main nav button[class*="bg-slate-100"] {
+  justify-content: center;
+}
 
 main>aside>div {
   height: 100%;
@@ -159,13 +235,36 @@ main>aside>div:focus-within {
   scrollbar-color: #475569 transparent;
 }
 
-main>aside>div::-webkit-scrollbar { width: 0; }
-main>aside>div:hover::-webkit-scrollbar,
-main>aside>div:focus-within::-webkit-scrollbar { width: 6px; }
-main>aside>div::-webkit-scrollbar-track { background: transparent; }
-main>aside>div::-webkit-scrollbar-thumb { background: #475569; border-radius: 999px; }
+main>aside>div::-webkit-scrollbar {
+  width: 0;
+}
 
-main>section>section>div:first-child { transform: translateY(-0.85rem); }
+main>aside>div:hover::-webkit-scrollbar,
+main>aside>div:focus-within::-webkit-scrollbar {
+  width: 6px;
+}
+
+main>aside>div::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+main>aside>div::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 999px;
+}
+
+main>section>section>div:first-child {
+  transform: translateY(-0.85rem);
+}
+
+.terminal-categories-hidden { display: none !important; }
+.terminal-right-layout main { display: grid; grid-template-columns: 240px minmax(0, 1fr); padding-right: 1.5rem !important; }
+.terminal-right-layout main>section { min-width: 0; width: calc(50% - 1rem); max-width: none; padding-right: 0; }
+.terminal-right-layout main>section>section>div:last-child { grid-template-columns: minmax(0, 1fr) !important; }
+.terminal-right-layout main>section>section>div:last-child article { width: 100%; max-width: 680px; }
+
+.terminal-bottom-layout main { padding-bottom: 3rem !important; }
+.terminal-bottom-layout main>section { min-height: calc(42vh - 2rem); padding-bottom: 0; }
 
 main>section>div:first-child {
   margin-bottom: 2.5rem !important;
@@ -223,9 +322,9 @@ main section>div:first-child>div:last-child>button {
   background: #1e293b;
   color: #cbd5e1;
   box-shadow: none;
-  height: 40px;
-  width: 120px;
-  padding-left: 18px;
+  height: 45px;
+  width: 160px;
+  padding-left: 34px;
 }
 
 main section>div:first-child>div:last-child>button:hover {
@@ -256,6 +355,14 @@ main section>div:first-child>div:last-child>button:hover {
     height: auto;
     max-height: calc(100vh - 9rem);
   }
+
+  .terminal-right-layout main { display: block; padding-right: 1rem !important; }
+  .terminal-right-layout main>section { width: 100%; max-width: none; padding-right: 0; }
+  .terminal-bottom-layout main>section { min-height: auto; padding-bottom: 0; }
+  .terminal-dock-right { top: 8.5rem; width: 100vw !important; }
+  .terminal-dock-bottom { left: 0; top: 48vh; width: 100vw; height: 52vh !important; }
+  .terminal-dock-right { min-width: 0; }
+  .terminal-dock-bottom { min-height: 320px; }
 
   main article {
     padding: 1.35rem !important;

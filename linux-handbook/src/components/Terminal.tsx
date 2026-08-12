@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { X, RotateCcw, Minimize2, Maximize2, History } from 'lucide-react';
+import { X, RotateCcw, Minimize2, Maximize2, History, GripHorizontal } from 'lucide-react';
 import { securityService } from '../services/securityHardening';
 import { secureWebVM } from '../services/webvmService';
 import { commandHistoryService } from '../services/commandHistory';
@@ -11,12 +11,14 @@ interface TerminalProps {
   isOpen: boolean;
   onClose: () => void;
   prefilledCommand?: string;
+  placement?: 'floating' | 'right' | 'bottom';
 }
 
 export const Terminal: React.FC<TerminalProps> = ({
   isOpen,
   onClose,
   prefilledCommand,
+  placement = 'floating',
 }) => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [output, setOutput] = useState<string[]>([
@@ -32,7 +34,19 @@ export const Terminal: React.FC<TerminalProps> = ({
   const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
   const outputRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef({ active: false, offsetX: 0, offsetY: 0 });
+  const resizeRef = useRef({ active: false, startX: 0, startY: 0, width: 0, height: 0 });
+  const [position, setPosition] = useState({ x: Math.max(24, window.innerWidth - 620), y: Math.max(80, window.innerHeight - 520) });
+  const [size, setSize] = useState({ width: Math.min(720, window.innerWidth - 16), height: 560 });
   const commandHistory = commandHistoryService.getRecentCommands(50);
+
+  useEffect(() => {
+    if (placement === 'right') {
+      setSize((current) => ({ ...current, width: Math.max(360, Math.round(window.innerWidth * 0.5)) }));
+    } else if (placement === 'bottom') {
+      setSize((current) => ({ ...current, height: Math.round(window.innerHeight * 0.58) }));
+    }
+  }, [placement]);
 
   // Apply theme to terminal
   useEffect(() => {
@@ -166,27 +180,64 @@ export const Terminal: React.FC<TerminalProps> = ({
     setHistoryIndex(-1);
   };
 
+  const startDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (placement !== 'floating' || !terminalRef.current) return;
+    const rect = terminalRef.current.getBoundingClientRect();
+    dragRef.current = { active: true, offsetX: event.clientX - rect.left, offsetY: event.clientY - rect.top };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const moveDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragRef.current.active) return;
+    setPosition({ x: Math.max(8, Math.min(window.innerWidth - 360, event.clientX - dragRef.current.offsetX)), y: Math.max(8, Math.min(window.innerHeight - 180, event.clientY - dragRef.current.offsetY)) });
+  };
+
+  const stopDrag = () => { dragRef.current.active = false; };
+
+  const startResize = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!terminalRef.current) return;
+    const rect = terminalRef.current.getBoundingClientRect();
+    resizeRef.current = { active: true, startX: event.clientX, startY: event.clientY, width: rect.width, height: rect.height };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const moveResize = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!resizeRef.current.active) return;
+    const deltaX = event.clientX - resizeRef.current.startX;
+    const deltaY = event.clientY - resizeRef.current.startY;
+    if (placement === 'right') {
+      setSize((current) => ({ ...current, width: Math.max(360, Math.min(window.innerWidth - 280, resizeRef.current.width - deltaX)) }));
+    } else if (placement === 'bottom') {
+      setSize((current) => ({ ...current, height: Math.max(260, Math.min(window.innerHeight - 120, resizeRef.current.height - deltaY)) }));
+    } else {
+      setSize({ width: Math.max(360, Math.min(window.innerWidth - 16, resizeRef.current.width + deltaX)), height: Math.max(260, Math.min(window.innerHeight - 16, resizeRef.current.height + deltaY)) });
+    }
+  };
+
+  const stopResize = () => { resizeRef.current.active = false; };
+
   if (!isOpen) return null;
 
   return (
     <div
       ref={terminalRef}
-      className="fixed bottom-0 right-0 w-full sm:w-1/2 h-1/2 sm:h-2/3 bg-gray-900 dark:bg-gray-950 border-t border-l border-gray-700 dark:border-gray-800 rounded-tl-lg shadow-2xl flex flex-col z-50"
+      className={`terminal-window fixed flex flex-col z-50 overflow-hidden border border-slate-700/80 bg-gray-950 shadow-2xl ${placement === 'right' ? 'terminal-dock-right right-0 rounded-none border-y-0 border-r-0' : placement === 'bottom' ? 'terminal-dock-bottom bottom-0 right-0 rounded-t-2xl border-b-0' : 'terminal-dock-floating h-[560px] w-[min(720px,calc(100vw-16px))] rounded-2xl'}`}
       style={{
         backgroundColor: 'var(--terminal-bg, #282c34)',
         color: 'var(--terminal-fg, #abb2bf)',
+        ...(placement === 'floating' ? { left: position.x, top: position.y, width: size.width, height: size.height } : placement === 'right' ? { width: size.width } : { height: size.height }),
       }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: 'var(--terminal-selection)' }}>
+      <div onPointerDown={startDrag} onPointerMove={moveDrag} onPointerUp={stopDrag} onPointerCancel={stopDrag} className={`flex items-center justify-between border-b px-4 py-3 ${placement === 'floating' ? 'cursor-move' : ''}`} style={{ borderColor: 'var(--terminal-selection)' }}>
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-green-500"></div>
-          <span className="text-sm font-mono">
-            Secure WebVM - Phase 5: Keyboard Shortcuts, History, Themes
-          </span>
+          <div className="flex gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-red-400/80" /><span className="h-2.5 w-2.5 rounded-full bg-amber-400/80" /><span className="h-2.5 w-2.5 rounded-full bg-emerald-400/80" /></div>
+          <GripHorizontal size={14} className="ml-2 opacity-50" />
+          <span className="text-sm font-semibold tracking-tight">Secure Linux Sandbox</span>
         </div>
         <div className="flex gap-2">
           <button
+            onPointerDown={(event) => event.stopPropagation()}
             onClick={() => setShowHistory(!showHistory)}
             className="p-1.5 hover:opacity-70 transition-opacity"
             title="Command History (↑/↓)"
@@ -194,6 +245,7 @@ export const Terminal: React.FC<TerminalProps> = ({
             <History size={16} />
           </button>
           <button
+            onPointerDown={(event) => event.stopPropagation()}
             onClick={handleReset}
             className="p-1.5 hover:opacity-70 transition-opacity"
             title="Clear (Ctrl+L)"
@@ -201,6 +253,7 @@ export const Terminal: React.FC<TerminalProps> = ({
             <RotateCcw size={16} />
           </button>
           <button
+            onPointerDown={(event) => event.stopPropagation()}
             onClick={() => setIsMinimized(!isMinimized)}
             className="p-1.5 hover:opacity-70 transition-opacity"
             title={isMinimized ? 'Restore' : 'Minimize'}
@@ -208,6 +261,7 @@ export const Terminal: React.FC<TerminalProps> = ({
             {isMinimized ? <Maximize2 size={16} /> : <Minimize2 size={16} />}
           </button>
           <button
+            onPointerDown={(event) => event.stopPropagation()}
             onClick={onClose}
             className="p-1.5 hover:opacity-70 transition-opacity"
             title="Close"
@@ -225,13 +279,14 @@ export const Terminal: React.FC<TerminalProps> = ({
 
       {/* History Panel - Phase 5 */}
       {showHistory && (
-        <TerminalHistory
+          <TerminalHistory
           isOpen={showHistory}
           refreshTrigger={historyRefreshTrigger}
           onSelectCommand={(cmd) => {
             setInput(cmd);
             setShowHistory(false);
           }}
+          onClose={() => setShowHistory(false)}
         />
       )}
 
@@ -288,6 +343,8 @@ export const Terminal: React.FC<TerminalProps> = ({
           <p className="text-sm opacity-50">Terminal minimized</p>
         </div>
       )}
+
+      <div onPointerDown={startResize} onPointerMove={moveResize} onPointerUp={stopResize} onPointerCancel={stopResize} className={`terminal-resize-handle ${placement === 'right' ? 'terminal-resize-left' : placement === 'bottom' ? 'terminal-resize-top' : ''}`} aria-label="Resize terminal" />
 
       {/* Footer */}
       <div className="px-3 py-2 text-xs opacity-60 border-t" style={{ borderColor: 'var(--terminal-selection)' }}>
