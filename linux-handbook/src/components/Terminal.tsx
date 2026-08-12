@@ -12,6 +12,8 @@ interface TerminalProps {
   onClose: () => void;
   prefilledCommand?: string;
   placement?: 'floating' | 'right' | 'bottom';
+  onRightDockResize?: (width: number) => void;
+  onBottomDockResize?: (height: number) => void;
 }
 
 export const Terminal: React.FC<TerminalProps> = ({
@@ -19,6 +21,8 @@ export const Terminal: React.FC<TerminalProps> = ({
   onClose,
   prefilledCommand,
   placement = 'floating',
+  onRightDockResize,
+  onBottomDockResize,
 }) => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [output, setOutput] = useState<string[]>([
@@ -42,9 +46,13 @@ export const Terminal: React.FC<TerminalProps> = ({
 
   useEffect(() => {
     if (placement === 'right') {
-      setSize((current) => ({ ...current, width: Math.max(360, Math.round(window.innerWidth * 0.5)) }));
+      const nextWidth = Math.max(360, Math.round(window.innerWidth * 0.36));
+      setSize((current) => ({ ...current, width: nextWidth }));
+      onRightDockResize?.(nextWidth);
     } else if (placement === 'bottom') {
-      setSize((current) => ({ ...current, height: Math.round(window.innerHeight * 0.58) }));
+      const nextHeight = Math.round(window.innerHeight * 0.58);
+      setSize((current) => ({ ...current, height: nextHeight }));
+      onBottomDockResize?.(nextHeight);
     }
   }, [placement]);
 
@@ -206,9 +214,13 @@ export const Terminal: React.FC<TerminalProps> = ({
     const deltaX = event.clientX - resizeRef.current.startX;
     const deltaY = event.clientY - resizeRef.current.startY;
     if (placement === 'right') {
-      setSize((current) => ({ ...current, width: Math.max(360, Math.min(window.innerWidth - 280, resizeRef.current.width - deltaX)) }));
+      const nextWidth = Math.max(360, Math.min(window.innerWidth - 280, resizeRef.current.width - deltaX));
+      setSize((current) => ({ ...current, width: nextWidth }));
+      onRightDockResize?.(nextWidth);
     } else if (placement === 'bottom') {
-      setSize((current) => ({ ...current, height: Math.max(260, Math.min(window.innerHeight - 120, resizeRef.current.height - deltaY)) }));
+      const nextHeight = Math.max(140, Math.min(Math.round(window.innerHeight * 0.86), resizeRef.current.height - deltaY));
+      setSize((current) => ({ ...current, height: nextHeight }));
+      onBottomDockResize?.(nextHeight);
     } else {
       setSize({ width: Math.max(360, Math.min(window.innerWidth - 16, resizeRef.current.width + deltaX)), height: Math.max(260, Math.min(window.innerHeight - 16, resizeRef.current.height + deltaY)) });
     }
@@ -225,7 +237,11 @@ export const Terminal: React.FC<TerminalProps> = ({
       style={{
         backgroundColor: 'var(--terminal-bg, #282c34)',
         color: 'var(--terminal-fg, #abb2bf)',
-        ...(placement === 'floating' ? { left: position.x, top: position.y, width: size.width, height: size.height } : placement === 'right' ? { width: size.width } : { height: size.height }),
+        ...(placement === 'floating'
+          ? { left: position.x, top: position.y, width: size.width, height: size.height }
+          : placement === 'right'
+            ? { top: '9rem', right: 0, bottom: 0, width: size.width, height: 'auto' }
+            : { left: '280px', right: 0, bottom: 'auto', top: `calc(100vh - ${size.height}px)`, width: 'auto', height: size.height }),
       }}
     >
       {/* Header */}

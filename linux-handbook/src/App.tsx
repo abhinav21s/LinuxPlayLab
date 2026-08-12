@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { BookOpen, Command as CommandIcon, Heart, Menu, Search, ShieldCheck, Terminal as TerminalIcon, X, Move, PanelRight, PanelBottom } from 'lucide-react';
 import { CommandSection } from './components/CommandSection';
 import { SearchBar } from './components/SearchBar';
@@ -20,6 +20,8 @@ function App() {
   const [terminalPlacement, setTerminalPlacement] = useState<'floating' | 'right' | 'bottom'>('floating');
   const [terminalMenuOpen, setTerminalMenuOpen] = useState(false);
   const [rightCategoriesOpen, setRightCategoriesOpen] = useState(false);
+  const [rightTerminalWidth, setRightTerminalWidth] = useState(Math.round(window.innerWidth * 0.36));
+  const [bottomTerminalHeight, setBottomTerminalHeight] = useState(Math.round(window.innerHeight * 0.58));
   const categoryScrollRef = useRef<HTMLDivElement>(null);
   const favoriteSet = useMemo(() => new Set(favorites), [favorites]);
   const searchedSections = useSearch({ sections: commandSections, query: searchQuery });
@@ -47,7 +49,7 @@ function App() {
   const chooseTerminalPlacement = (placement: 'floating' | 'right' | 'bottom') => { setTerminalPlacement(placement); setTerminalMenuOpen(false); setIsTerminalOpen(true); if (placement !== 'right') setRightCategoriesOpen(false); };
 
   return (
-    <div className={`min-h-screen bg-slate-950 text-slate-100 ${terminalPlacement === 'right' && isTerminalOpen ? 'terminal-right-layout' : ''} ${terminalPlacement === 'bottom' && isTerminalOpen ? 'terminal-bottom-layout' : ''}`}>
+    <div style={{ '--right-terminal-width': `${rightTerminalWidth}px`, '--bottom-terminal-height': `${bottomTerminalHeight}px` } as CSSProperties} className={`min-h-screen bg-slate-950 text-slate-100 ${terminalPlacement === 'right' && isTerminalOpen ? 'terminal-right-layout' : ''} ${terminalPlacement === 'bottom' && isTerminalOpen ? 'terminal-bottom-layout' : ''}`}>
       <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/95 backdrop-blur-xl">
         <div className="mx-auto max-w-[1440px] px-4 py-5 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4"><div className="flex min-w-0 items-center gap-3"><div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-slate-100"><BookOpen className="text-slate-900" size={18} /></div><div><h1 className="truncate text-base font-bold tracking-tight">Linux Playbook</h1><p className="hidden text-[11px] text-slate-500 sm:block">Command reference &amp; sandbox</p></div></div><div className="relative ml-auto" onMouseEnter={() => setTerminalMenuOpen(true)} onMouseLeave={() => setTerminalMenuOpen(false)}><button onClick={() => setIsTerminalOpen(!isTerminalOpen)} className={`flex items-center gap-2 rounded-lg border-0 px-3 py-2 text-sm font-semibold transition-colors ${isTerminalOpen ? 'bg-white text-slate-950' : 'bg-slate-800 text-slate-200 hover:bg-slate-700'}`} title="Toggle terminal"><TerminalIcon size={16} /><span className="hidden sm:inline">Terminal</span></button>{terminalMenuOpen && <div className="absolute right-0 top-full z-[60] mt-2 w-56 rounded-xl border border-slate-700 bg-slate-900 p-1.5 shadow-2xl" onMouseEnter={() => setTerminalMenuOpen(true)}><p className="px-2.5 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">Terminal placement</p><button onClick={() => chooseTerminalPlacement('floating')} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-slate-300 hover:bg-slate-800"><Move size={14} /> Floating / draggable</button><button onClick={() => chooseTerminalPlacement('right')} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-slate-300 hover:bg-slate-800"><PanelRight size={14} /> Dock on right</button><button onClick={() => chooseTerminalPlacement('bottom')} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-slate-300 hover:bg-slate-800"><PanelBottom size={14} /> Dock on bottom</button></div>}</div></div>
@@ -62,7 +64,7 @@ function App() {
           {filteredSections.length === 0 ? <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900 py-20 text-center"><Search className="mx-auto mb-4 text-slate-500" size={38} /><p className="font-semibold text-slate-200">{showFavoritesOnly ? 'No saved commands yet.' : 'No commands found'}</p><p className="mt-2 text-sm text-slate-500">{showFavoritesOnly ? 'Use the heart on a command to save it here.' : 'Try a different command name or description.'}</p></div> : filteredSections.map((section) => <CommandSection key={section.id} {...section} onTryCommand={handleTryCommand} onCopyCommand={handleCopyCommand} onFavorite={handleToggleFavorite} favorites={favoriteSet} />)}
         </section>
       </main>
-      <Terminal isOpen={isTerminalOpen} onClose={() => setIsTerminalOpen(false)} prefilledCommand={prefilledCommand} placement={terminalPlacement} />
+      <Terminal isOpen={isTerminalOpen} onClose={() => setIsTerminalOpen(false)} prefilledCommand={prefilledCommand} placement={terminalPlacement} onRightDockResize={setRightTerminalWidth} onBottomDockResize={setBottomTerminalHeight} />
       <footer className="border-t border-slate-800 bg-slate-950 py-7"><div className="mx-auto flex max-w-[1440px] flex-col gap-2 px-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8"><span>Linux Playbook · a practical command reference</span><span className="flex items-center gap-1.5"><ShieldCheck size={13} className="text-emerald-500" /> Restricted browser sandbox</span></div></footer>
     </div>
   );
