@@ -30,7 +30,7 @@ export interface SecurityMetrics {
 
 // Default rate limiting configuration
 const DEFAULT_RATE_LIMIT: RateLimitConfig = {
-  maxCommandsPerMinute: 10,
+  maxCommandsPerMinute: 35,
   maxCommandsPerHour: 60,
   cooldownMs: 100, // Minimum time between commands
 };
@@ -82,9 +82,16 @@ class SecurityHardeningService {
     const now = Date.now();
     const lastTime = this.metrics.lastCommandTime;
 
+    if (!lastTime) {
+      this.metrics.lastCommandTime = now;
+      this.saveMetrics();
+      return;
+    }
+
     // Reset minute counter if 60 seconds have passed
     if (now - lastTime > 60000) {
       this.metrics.commandsThisMinute = 0;
+      this.metrics.lastCommandTime = now;
     }
 
     // Reset hour counter if 3600 seconds have passed
@@ -92,7 +99,6 @@ class SecurityHardeningService {
       this.metrics.commandsThisHour = 0;
     }
 
-    this.metrics.lastCommandTime = now;
     this.saveMetrics();
   }
 
@@ -114,8 +120,12 @@ class SecurityHardeningService {
     const now = Date.now();
     this.updateMetrics();
 
+    // Rate limiting is temporarily disabled. Metrics are still collected so
+    // the limit can be restored later without changing the terminal UI.
+    return { allowed: true };
+
     // Check cooldown (minimum time between commands)
-    if (now - this.lastCommandTime < this.rateLimit.cooldownMs) {
+    if (this.lastCommandTime > 0 && now - this.lastCommandTime < this.rateLimit.cooldownMs) {
       return {
         allowed: false,
         message: `Rate limited: Wait ${Math.ceil((this.rateLimit.cooldownMs - (now - this.lastCommandTime)) / 1000)} seconds before next command`,

@@ -103,6 +103,12 @@ Provides a clean API for:
 - **Reset**: Clear filesystem and reinitialize
 - **Status**: Check VM state and configuration
 
+The terminal uses the official CheerpX Linux runtime with a streamed Debian
+image and an IndexedDB writable overlay. The command interceptor remains in
+front of the VM to block networking, Docker, Git, service management,
+scheduling, and privileged operations. Vercel deployments use `vercel.json` to
+enable the cross-origin isolation headers required by the browser VM.
+
 ### Terminal Component (`Terminal.tsx`)
 
 Handles:

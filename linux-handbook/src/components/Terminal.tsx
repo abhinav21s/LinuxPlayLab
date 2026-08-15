@@ -85,35 +85,11 @@ export const Terminal: React.FC<TerminalProps> = ({
         return;
       }
 
-      // Arrow Up: Previous command
-      if (e.key === 'ArrowUp' && input === '') {
-        e.preventDefault();
-        const newIndex = Math.min(historyIndex + 1, commandHistory.length - 1);
-        if (newIndex >= 0) {
-          setHistoryIndex(newIndex);
-          setInput(commandHistory[newIndex].command);
-        }
-        return;
-      }
-
-      // Arrow Down: Next command
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        if (historyIndex > 0) {
-          const newIndex = historyIndex - 1;
-          setHistoryIndex(newIndex);
-          setInput(commandHistory[newIndex].command);
-        } else if (historyIndex === 0) {
-          setHistoryIndex(-1);
-          setInput('');
-        }
-        return;
-      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, historyIndex, commandHistory, input]);
+  }, [isOpen]);
 
   useEffect(() => {
     if (prefilledCommand && isOpen) {
@@ -145,33 +121,38 @@ export const Terminal: React.FC<TerminalProps> = ({
 
     const cmdTrimmed = input.trim();
     setOutput((prev) => [...prev, `$ ${cmdTrimmed}`]);
+    // Clear immediately so a slow first VM startup cannot leave the submitted
+    // command sitting in the editor and make it look like execution failed.
+    setInput('');
+    setHistoryIndex(-1);
 
     // Phase 4: Check rate limiting
     const rateLimitCheck = securityService.canExecuteCommand();
     if (!rateLimitCheck.allowed) {
       setOutput((prev) => [...prev, `[RATE LIMITED] ${rateLimitCheck.message}`]);
       securityService.recordBlockedAttempt(cmdTrimmed, 'Rate limited');
-      setInput('');
       return;
     }
 
     // Check resource limits
     if (securityService.isMemoryLimitExceeded()) {
       setOutput((prev) => [...prev, `[ERROR] Memory limit exceeded: ${securityService.getMetrics().memoryUsedMb}MB used`]);
-      setInput('');
       return;
     }
 
     if (securityService.isDiskLimitExceeded()) {
       setOutput((prev) => [...prev, `[ERROR] Disk quota exceeded: ${securityService.getMetrics().diskUsedMb}MB used`]);
-      setInput('');
       return;
     }
 
     // Record command and execute via Secure WebVM
     securityService.recordCommand(cmdTrimmed);
+    setOutput((prev) => [...prev, '[VM] Executing in browser Linux…']);
     const result = await secureWebVM.executeCommand(cmdTrimmed);
     commandHistoryService.addCommand(cmdTrimmed, result.exitCode);
+    // Refresh the in-memory list used by ArrowUp/ArrowDown immediately after
+    // a command completes (without requiring the history dialog to open).
+    setHistoryRefreshTrigger((prev) => prev + 1);
 
     // Display output
     if (result.output) {
@@ -180,12 +161,34 @@ export const Terminal: React.FC<TerminalProps> = ({
     if (result.error && !result.success) {
       setOutput((prev) => [...prev, `[ERROR] ${result.error}`]);
     }
+    if (result.success && !result.output.trim()) {
+      setOutput((prev) => [...prev, `[done] exit code: ${result.exitCode}`]);
+    }
     if (!result.success && result.exitCode !== 0) {
       setOutput((prev) => [...prev, `exit code: ${result.exitCode}`]);
     }
 
-    setInput('');
-    setHistoryIndex(-1);
+  };
+
+  const handleHistoryKey = (key: 'up' | 'down') => {
+    if (key === 'up') {
+      if (input !== '' && historyIndex === -1) return;
+      const newIndex = Math.min(historyIndex + 1, commandHistory.length - 1);
+      if (newIndex >= 0) {
+        setHistoryIndex(newIndex);
+        setInput(commandHistory[newIndex].command);
+      }
+      return;
+    }
+
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1;
+      setHistoryIndex(newIndex);
+      setInput(commandHistory[newIndex].command);
+    } else if (historyIndex === 0) {
+      setHistoryIndex(-1);
+      setInput('');
+    }
   };
 
   const startDrag = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -340,8 +343,19 @@ export const Terminal: React.FC<TerminalProps> = ({
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => {
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowUp') {
+                  e.preventDefault();
+                  handleHistoryKey('up');
+                  return;
+                }
+                if (e.key === 'ArrowDown') {
+                  e.preventDefault();
+                  handleHistoryKey('down');
+                  return;
+                }
                 if (e.key === 'Enter') {
+                  e.preventDefault();
                   handleCommand();
                 }
               }}

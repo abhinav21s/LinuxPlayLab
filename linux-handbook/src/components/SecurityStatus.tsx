@@ -50,7 +50,7 @@ export const SecurityStatus: React.FC<SecurityStatusProps> = ({ className = '' }
       >
         <span className={getStatusColor()}>{getStatusIcon()}</span>
         <span className="text-xs">{status.message}</span>
-        <span className="text-xs opacity-60">({metrics.commandsThisMinute}/10 cmds)</span>
+        <span className="text-xs opacity-60">({metrics.commandsThisMinute}/35 cmds)</span>
       </button>
 
       {/* Expanded Details */}

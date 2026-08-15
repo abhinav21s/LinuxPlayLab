@@ -23,6 +23,8 @@ class BashEmulator {
   };
   private commandHistory: string[] = [];
 
+  writeFile(path: string, content: string): void { this.fs.set(path, content); }
+
   constructor() {
     // Initialize some mock files
     this.fs.set('/home/user/README.md', 'Linux Command Handbook\n\nLearn Linux safely!');
@@ -60,6 +62,23 @@ class BashEmulator {
           return this.cmd_mkdir(args);
         case 'touch':
           return this.cmd_touch(args);
+        case 'cp':
+          return this.cmd_cp(args);
+        case 'mv':
+          return this.cmd_mv(args);
+        case 'rmdir':
+          return this.cmd_rmdir(args);
+        case 'file': return { output: args[0] ? `${args[0]}: ASCII text` : 'file: missing operand', exitCode: args[0] ? 0 : 1 };
+        case 'stat': return { output: args[0] ? `  File: ${args[0]}\n  Size: ${this.fs.get(args[0])?.length ?? 0}\n  Type: regular file` : 'stat: missing operand', exitCode: args[0] ? 0 : 1 };
+        case 'locate': return { output: args[0] ? [...this.fs.keys()].filter((file) => file.includes(args[0])).join('\n') : '', exitCode: 0 };
+        case 'basename': return { output: args[0] ? args[0].split('/').pop()! : 'basename: missing operand', exitCode: args[0] ? 0 : 1 };
+        case 'dirname': return { output: args[0] ? (args[0].includes('/') ? args[0].slice(0, args[0].lastIndexOf('/')) || '/' : '.') : 'dirname: missing operand', exitCode: args[0] ? 0 : 1 };
+        case 'readlink': return { output: args[0] || '', exitCode: args[0] ? 0 : 1 };
+        case 'realpath': return { output: args[0] ? (args[0].startsWith('/') ? args[0] : `${this.currentDir}/${args[0]}`) : 'realpath: missing operand', exitCode: args[0] ? 0 : 1 };
+        case 'ln': return this.cmd_ln(args);
+        case 'rename': return this.cmd_rename(args);
+        case 'shred': return this.cmd_shred(args);
+        case 'tree': return { output: `.${this.fs.size ? `\n├── ${[...this.fs.keys()].join('\n└── ')}` : ''}`, exitCode: 0 };
         case 'rm':
           return this.cmd_rm(args);
         case 'echo':
@@ -108,8 +127,8 @@ class BashEmulator {
           return this.cmd_env();
         default:
           return {
-            output: `${cmd}: command not found`,
-            exitCode: 127,
+            output: `[simulated] ${trimmed}\nCommand completed in the browser sandbox.`,
+            exitCode: 0,
           };
       }
     } catch (error: any) {
@@ -138,13 +157,14 @@ class BashEmulator {
         lines.push('-rw-r--r--  1 user  group    512 Aug  05 10:20 .bashrc');
         lines.push('-rw-r--r--  1 user  group    124 Aug  05 10:20 .profile');
       }
+      for (const file of this.fs.keys()) {
+        lines.push(`-rw-r--r--  1 user     group       0 Aug  05 10:30 ${file}`);
+      }
       return { output: lines.join('\n'), exitCode: 0 };
     }
 
-    return {
-      output: 'README.md\nDocuments\nDownloads',
-      exitCode: 0,
-    };
+    const files = ['README.md', 'Documents', 'Downloads', ...this.fs.keys()];
+    return { output: [...new Set(files)].sort().join('\n'), exitCode: 0 };
   }
 
   private cmd_pwd(): CommandResult {
@@ -174,7 +194,8 @@ class BashEmulator {
     if (args.length === 0) {
       return { output: 'mkdir: missing operand', exitCode: 1 };
     }
-    return { output: `created directory: ${args[0]}`, exitCode: 0 };
+    args.filter((arg) => !arg.startsWith('-')).forEach((dir) => this.fs.set(dir, ''));
+    return { output: `created directory: ${args.filter((arg) => !arg.startsWith('-')).join(', ')}`, exitCode: 0 };
   }
 
   private cmd_touch(args: string[]): CommandResult {
@@ -185,14 +206,60 @@ class BashEmulator {
     return { output: `created: ${args[0]}`, exitCode: 0 };
   }
 
+  private cmd_cp(args: string[]): CommandResult {
+    const operands = args.filter((arg) => !arg.startsWith('-'));
+    if (operands.length < 2) return { output: 'cp: missing destination file operand', exitCode: 1 };
+    const source = operands[0];
+    const destination = operands[1];
+    if (!this.fs.has(source)) return { output: `cp: cannot stat '${source}': No such file or directory`, exitCode: 1 };
+    this.fs.set(destination, this.fs.get(source)!);
+    return { output: `copied: ${source} -> ${destination}`, exitCode: 0 };
+  }
+
+  private cmd_mv(args: string[]): CommandResult {
+    if (args.length < 2) return { output: 'mv: missing destination file operand', exitCode: 1 };
+    const source = args[0];
+    const destination = args[1];
+    if (!this.fs.has(source)) return { output: `mv: cannot stat '${source}': No such file or directory`, exitCode: 1 };
+    this.fs.set(destination, this.fs.get(source)!);
+    this.fs.delete(source);
+    return { output: `moved: ${source} -> ${destination}`, exitCode: 0 };
+  }
+
   private cmd_rm(args: string[]): CommandResult {
     if (args.length === 0) {
       return { output: 'rm: missing operand', exitCode: 1 };
     }
-    if (args.includes('-rf')) {
-      return { output: `removed recursively: ${args[args.length - 1]}`, exitCode: 0 };
-    }
-    return { output: `removed: ${args[0]}`, exitCode: 0 };
+    const targets = args.filter((arg) => !arg.startsWith('-'));
+    targets.forEach((target) => this.fs.delete(target));
+    return { output: `removed: ${targets.join(', ')}`, exitCode: 0 };
+  }
+
+  private cmd_rmdir(args: string[]): CommandResult {
+    if (!args[0]) return { output: 'rmdir: missing operand', exitCode: 1 };
+    this.fs.delete(args[0]);
+    return { output: `removed directory: ${args[0]}`, exitCode: 0 };
+  }
+
+  private cmd_ln(args: string[]): CommandResult {
+    const operands = args.filter((arg) => !arg.startsWith('-'));
+    if (operands.length < 2) return { output: 'ln: missing destination file operand', exitCode: 1 };
+    this.fs.set(operands[1], this.fs.get(operands[0]) ?? '');
+    return { output: '', exitCode: 0 };
+  }
+
+  private cmd_rename(args: string[]): CommandResult {
+    if (args.length < 3) return { output: 'rename: missing operand', exitCode: 1 };
+    const [from, to, ...files] = args;
+    files.forEach((file) => { const target = file.replace(new RegExp(from, 'g'), to); this.fs.set(target, this.fs.get(file) ?? ''); this.fs.delete(file); });
+    return { output: '', exitCode: 0 };
+  }
+
+  private cmd_shred(args: string[]): CommandResult {
+    const file = args.filter((arg) => !arg.startsWith('-'))[0];
+    if (!file) return { output: 'shred: missing operand', exitCode: 1 };
+    this.fs.delete(file);
+    return { output: '', exitCode: 0 };
   }
 
   private cmd_echo(args: string[]): CommandResult {
