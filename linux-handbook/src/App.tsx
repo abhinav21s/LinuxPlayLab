@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { BookOpen, Command as CommandIcon, Heart, Menu, Search, ShieldCheck, Terminal as TerminalIcon, X, Move, PanelRight, PanelBottom } from 'lucide-react';
+import { ArrowRight, BookOpen, Check, Command as CommandIcon, Heart, Menu, Search, ShieldCheck, Terminal as TerminalIcon, X, Move, PanelRight, PanelBottom } from 'lucide-react';
 import { CommandSection } from './components/CommandSection';
 import { SearchBar } from './components/SearchBar';
 import { SecurityStatus } from './components/SecurityStatus';
@@ -9,7 +9,22 @@ import { useLocalStorage } from './hooks/useLocalStorage';
 import { useSearch } from './hooks/useSearch';
 import { Command } from './types';
 
+function LandingPage({ onEnter }: { onEnter: () => void }) {
+  return <div className="relative min-h-screen overflow-hidden bg-[#020617] text-slate-100">
+    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_70%_15%,rgba(37,99,235,0.18),transparent_35%),radial-gradient(circle_at_15%_80%,rgba(14,165,233,0.1),transparent_30%)]" />
+    <div className="relative mx-auto flex min-h-screen max-w-[1240px] flex-col px-6 py-7 sm:px-10 lg:px-12">
+      <nav className="flex items-center justify-between"><div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-blue-500 text-white shadow-lg shadow-blue-500/25"><BookOpen size={20} /></div><span className="text-lg font-bold tracking-tight">Linux Playbook</span></div><span className="rounded-full border border-slate-800 bg-slate-900/60 px-3 py-1.5 text-xs font-medium text-slate-400">Interactive command lab</span></nav>
+      <main className="grid flex-1 items-center gap-14 py-20 lg:grid-cols-[1.05fr_0.95fr] lg:py-10">
+        <section><div className="mb-7 inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-400/10 px-3.5 py-2 text-xs font-semibold text-blue-300"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399]" /> Built for curious builders</div><h1 className="max-w-3xl text-5xl font-black leading-[1.04] tracking-[-0.04em] text-white sm:text-6xl lg:text-7xl">Learn Linux by <span className="bg-gradient-to-r from-blue-300 via-cyan-300 to-indigo-300 bg-clip-text text-transparent">doing.</span></h1><p className="mt-7 max-w-xl text-lg leading-8 text-slate-400">A focused command reference and safe browser sandbox for mastering the terminal one command at a time.</p><div className="mt-10 flex flex-wrap items-center gap-4"><button onClick={onEnter} className="group inline-flex items-center gap-3 rounded-xl bg-blue-500 px-5 py-3.5 text-sm font-bold text-white shadow-xl shadow-blue-500/20 transition hover:bg-blue-400">Open the playbook <ArrowRight size={17} className="transition group-hover:translate-x-1" /></button><span className="text-xs text-slate-500">No setup · Runs in your browser</span></div><div className="mt-12 flex flex-wrap gap-x-8 gap-y-3 text-sm text-slate-400"><span className="flex items-center gap-2"><Check size={15} className="text-emerald-400" /> Searchable reference</span><span className="flex items-center gap-2"><Check size={15} className="text-emerald-400" /> Safe sandbox</span><span className="flex items-center gap-2"><Check size={15} className="text-emerald-400" /> Practical examples</span></div></section>
+        <section className="relative"><div className="absolute -inset-8 rounded-[2rem] bg-blue-500/10 blur-3xl" /><div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/90 shadow-2xl shadow-black/40"><div className="flex items-center gap-2 border-b border-slate-800 px-5 py-4"><span className="h-2.5 w-2.5 rounded-full bg-rose-400" /><span className="h-2.5 w-2.5 rounded-full bg-amber-400" /><span className="h-2.5 w-2.5 rounded-full bg-emerald-400" /><span className="ml-3 font-mono text-xs text-slate-500">linux-playbook ~ terminal</span></div><div className="space-y-5 p-6 font-mono text-sm leading-7 sm:p-8"><p className="text-slate-500"># explore the essentials</p><p><span className="text-emerald-400">$</span> <span className="text-slate-200">ls -la</span></p><p className="text-slate-400">Documents &nbsp; Downloads &nbsp; README.md</p><p><span className="text-emerald-400">$</span> <span className="text-slate-200">grep -r <span className="text-cyan-300">"learn"</span> .</span></p><p className="text-blue-300">./README.md: learn Linux by doing</p><p><span className="text-emerald-400">$</span> <span className="animate-pulse text-slate-200">_</span></p></div><div className="border-t border-slate-800 bg-slate-950/60 px-6 py-4 text-xs text-slate-500"><span className="text-emerald-400">●</span> Browser sandbox ready</div></div></section>
+      </main>
+      <footer className="flex flex-col gap-2 border-t border-slate-900 py-6 text-xs text-slate-600 sm:flex-row sm:items-center sm:justify-between"><span>Linux Playbook · practical reference for modern Linux</span><span>Learn. Experiment. Build.</span></footer>
+    </div>
+  </div>;
+}
+
 function App() {
+  const [showLanding, setShowLanding] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [favorites, setFavorites] = useLocalStorage<string[]>('linuxhandbook-favorites', []);
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
@@ -47,6 +62,8 @@ function App() {
   const handleTryCommand = (command: Command) => { setPrefilledCommand(command.example); setIsTerminalOpen(true); };
   const selectCategory = (id: number) => { setSelectedCategory(id); setSearchQuery(''); setShowFavoritesOnly(false); setMobileNavOpen(false); setRightCategoriesOpen(false); };
   const chooseTerminalPlacement = (placement: 'floating' | 'right' | 'bottom') => { setTerminalPlacement(placement); setTerminalMenuOpen(false); setIsTerminalOpen(true); if (placement !== 'right') setRightCategoriesOpen(false); };
+
+  if (showLanding) return <LandingPage onEnter={() => setShowLanding(false)} />;
 
   return (
     <div style={{ '--right-terminal-width': `${rightTerminalWidth}px`, '--bottom-terminal-height': `${bottomTerminalHeight}px` } as CSSProperties} className={`min-h-screen bg-slate-950 text-slate-100 ${terminalPlacement === 'right' && isTerminalOpen ? 'terminal-right-layout' : ''} ${terminalPlacement === 'bottom' && isTerminalOpen ? 'terminal-bottom-layout' : ''}`}>
