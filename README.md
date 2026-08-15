@@ -2,6 +2,10 @@
 
 A modern, clean, and highly usable web application for learning and practicing Linux commands with an integrated safe sandbox environment.
 
+## Live Demo
+
+[Open Linux Playbook](https://linux-play-lab.vercel.app/)
+
 ## Project Status: Phase 2 Complete ✓
 
 ### What's Implemented in Phase 2
